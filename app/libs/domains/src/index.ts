@@ -1,2 +1,2 @@
-export * from './domains.module';
-export * from './domains.service';
+export * from './core';
+export * from './bounded-contexts';
