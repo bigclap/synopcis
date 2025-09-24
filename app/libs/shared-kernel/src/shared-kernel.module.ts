@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { DatabaseConfigService } from './integrations/database/database-config';
-import { InMemoryGitRepositoryClient } from './integrations/git/git-repository.client';
+import { LocalGitRepositoryClient } from './integrations/git/git-repository.client';
 import { InMemoryObjectStorageClient } from './integrations/storage/object-storage.client';
 import { MarkdownRenderer } from './rendering/markdown.renderer';
 import { SharedKernelService } from './shared-kernel.service';
@@ -12,7 +12,7 @@ import { TaskQueueService } from './queue/task-queue.service';
     SharedKernelService,
     TaskQueueService,
     MarkdownRenderer,
-    InMemoryGitRepositoryClient,
+    LocalGitRepositoryClient,
     InMemoryObjectStorageClient,
     DatabaseConfigService,
   ],
@@ -20,7 +20,7 @@ import { TaskQueueService } from './queue/task-queue.service';
     SharedKernelService,
     TaskQueueService,
     MarkdownRenderer,
-    InMemoryGitRepositoryClient,
+    LocalGitRepositoryClient,
     InMemoryObjectStorageClient,
     DatabaseConfigService,
   ],
