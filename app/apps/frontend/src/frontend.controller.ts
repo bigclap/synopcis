@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Post, UsePipes, ValidationPipe } from '@nestjs/common';
-import { RenderMarkdownDto } from './dto/render-markdown.dto';
+import { Body, Controller, Get, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { ManifestQueryDto } from './dto/manifest-query.dto';
+import { RenderPageDto } from './dto/render-page.dto';
 import { FrontendService } from './frontend.service';
 
 @Controller('frontend')
@@ -13,12 +14,12 @@ export class FrontendController {
   constructor(private readonly frontendService: FrontendService) {}
 
   @Get('manifest')
-  manifest() {
-    return this.frontendService.manifest();
+  manifest(@Query() query: ManifestQueryDto) {
+    return this.frontendService.manifest(query);
   }
 
   @Post('render')
-  render(@Body() dto: RenderMarkdownDto) {
-    return this.frontendService.render(dto.markdown);
+  render(@Body() dto: RenderPageDto) {
+    return this.frontendService.render(dto);
   }
 }

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { DomainsModule } from '@synop/domains';
+import { SharedKernelModule } from '@synop/shared-kernel';
 import { WorkerGitController } from './worker-git.controller';
 import { WorkerGitService } from './worker-git.service';
 
 @Module({
-  imports: [DomainsModule],
+  imports: [SharedKernelModule],
   controllers: [WorkerGitController],
   providers: [WorkerGitService],
 })

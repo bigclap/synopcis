@@ -1,9 +1,10 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { DomainsService } from '@synop/domains';
 import {
   InMemoryGitRepositoryClient,
+  TaskQueueService,
   TaskType,
 } from '@synop/shared-kernel';
+import { Subscription } from 'rxjs';
 
 type MirrorPayload = {
   repository: string;
@@ -14,16 +15,16 @@ type MirrorPayload = {
 
 @Injectable()
 export class WorkerGitService implements OnModuleInit, OnModuleDestroy {
-  private unregister?: () => void;
+  private subscription?: Subscription;
   private commitCount = 0;
 
   constructor(
-    private readonly domains: DomainsService,
+    private readonly queue: TaskQueueService,
     private readonly git: InMemoryGitRepositoryClient,
   ) {}
 
   onModuleInit(): void {
-    this.unregister = this.domains.registerWorker<MirrorPayload>(
+    this.subscription = this.queue.consume<MirrorPayload>(
       TaskType.MIRROR_GIT,
       async (task) => {
         const commit = await this.git.commit({
@@ -41,12 +42,12 @@ export class WorkerGitService implements OnModuleInit, OnModuleDestroy {
           detail: `mirrored commit ${commit.hash}`,
         };
       },
-      'Git mirror processor',
+      { description: 'Git mirror processor' },
     );
   }
 
   onModuleDestroy(): void {
-    this.unregister?.();
+    this.subscription?.unsubscribe();
   }
 
   status() {

@@ -1,27 +1,50 @@
 import { Injectable } from '@nestjs/common';
-import { DomainsService } from '@synop/domains';
+import { SharedKernelService, TaskQueueService, TaskType } from '@synop/shared-kernel';
 import { CreateAiAnalysisTaskDto } from './dto/create-ai-analysis.dto';
 import { CreateRenderTaskDto } from './dto/create-render-task.dto';
-import { TaskType } from '@synop/shared-kernel';
 
 @Injectable()
 export class GatewayService {
-  constructor(private readonly domains: DomainsService) {}
+  constructor(
+    private readonly sharedKernel: SharedKernelService,
+    private readonly queue: TaskQueueService,
+  ) {}
 
   async scheduleRenderTask(dto: CreateRenderTaskDto) {
-    return this.domains.publishTask({
+    const payload = {
+      slug: dto.slug,
+      viewer: dto.viewer
+        ? {
+            id: dto.viewer.id ?? null,
+            roles: dto.viewer.roles ?? [],
+            attributes: dto.viewer.attributes ?? {},
+          }
+        : undefined,
+    };
+
+    const normalizedPayload = Object.fromEntries(
+      Object.entries(payload).filter(([, value]) => value !== undefined),
+    );
+
+    const message = this.sharedKernel.buildTaskMessage({
       type: TaskType.RENDER_STATIC,
-      payload: dto,
+      payload: normalizedPayload,
       source: dto.source,
     });
+
+    this.queue.publish(message);
+    return message;
   }
 
   async scheduleAiAnalysis(dto: CreateAiAnalysisTaskDto) {
-    return this.domains.publishTask({
+    const message = this.sharedKernel.buildTaskMessage({
       type: TaskType.ANALYZE_SOURCE,
       payload: dto,
       correlationId: dto.articleSlug,
       source: dto.sourceUrl,
     });
+
+    this.queue.publish(message);
+    return message;
   }
 }

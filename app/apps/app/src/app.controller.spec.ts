@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DomainsModule } from '@synop/domains';
+import { SharedKernelModule } from '@synop/shared-kernel';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -8,7 +8,7 @@ describe('AppController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DomainsModule],
+      imports: [SharedKernelModule],
       controllers: [AppController],
       providers: [AppService],
     }).compile();
@@ -18,7 +18,8 @@ describe('AppController', () => {
 
   it('returns queue status snapshot', () => {
     const status = controller.getStatus();
-    expect(status.workers).toEqual([]);
+    expect(status.workers).toBe(0);
     expect(status.errorCount).toBe(0);
+    expect(status.lastError).toBeNull();
   });
 });

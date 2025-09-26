@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DomainsModule } from '@synop/domains';
+import { SharedKernelModule } from '@synop/shared-kernel';
 import { WorkerAiController } from './worker-ai.controller';
 import { WorkerAiService } from './worker-ai.service';
 
@@ -8,7 +8,7 @@ describe('WorkerAiController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DomainsModule],
+      imports: [SharedKernelModule],
       controllers: [WorkerAiController],
       providers: [WorkerAiService],
     }).compile();

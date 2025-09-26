@@ -24,6 +24,8 @@
     "start:worker:ai:dev": "nest start --watch worker-ai",
     "start:worker:git": "nest start worker-git",
     "start:worker:git:dev": "nest start --watch worker-git",
+    "start:worker:frontend": "nest start worker-frontend",
+    "start:worker:frontend:dev": "nest start --watch worker-frontend",
     "start:frontend": "nest start frontend",
     "start:frontend:dev": "nest start --watch frontend"
   },
@@ -82,8 +84,8 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
-      "^@synop/domains(|/.*)$": "<rootDir>/libs/domains/src/$1",
-      "^@synop/shared-kernel(|/.*)$": "<rootDir>/libs/shared-kernel/src/$1"
+      "^@synop/shared-kernel(|/.*)$": "<rootDir>/libs/shared-kernel/src/$1",
+      "^@synop/rendering(|/.*)$": "<rootDir>/libs/rendering/src/$1"
     }
   }
 }

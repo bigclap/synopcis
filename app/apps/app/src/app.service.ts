@@ -1,5 +1,4 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { DomainsService } from '@synop/domains';
 import { TaskProcessingError, TaskQueueService } from '@synop/shared-kernel';
 import { Subscription } from 'rxjs';
 
@@ -9,10 +8,7 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
   private errorCount = 0;
   private lastError: TaskProcessingError | null = null;
 
-  constructor(
-    private readonly domains: DomainsService,
-    private readonly queue: TaskQueueService,
-  ) {}
+  constructor(private readonly queue: TaskQueueService) {}
 
   onModuleInit(): void {
     this.errorSubscription = this.queue.errors().subscribe((error) => {
@@ -27,7 +23,7 @@ export class AppService implements OnModuleInit, OnModuleDestroy {
 
   status() {
     return {
-      workers: this.domains.registeredWorkers(),
+      workers: this.queue.registeredConsumers(),
       errorCount: this.errorCount,
       lastError: this.lastError
         ? {

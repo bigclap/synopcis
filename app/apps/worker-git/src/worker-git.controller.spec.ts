@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DomainsModule } from '@synop/domains';
+import { SharedKernelModule } from '@synop/shared-kernel';
 import { WorkerGitController } from './worker-git.controller';
 import { WorkerGitService } from './worker-git.service';
 
@@ -8,7 +8,7 @@ describe('WorkerGitController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DomainsModule],
+      imports: [SharedKernelModule],
       controllers: [WorkerGitController],
       providers: [WorkerGitService],
     }).compile();

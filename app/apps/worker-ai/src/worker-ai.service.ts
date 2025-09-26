@@ -1,6 +1,6 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { DomainsService } from '@synop/domains';
-import { MarkdownRenderer, TaskType } from '@synop/shared-kernel';
+import { MarkdownRenderer, TaskQueueService, TaskType } from '@synop/shared-kernel';
+import { Subscription } from 'rxjs';
 
 type AnalysisPayload = {
   articleSlug: string;
@@ -16,16 +16,16 @@ type AnalysisRecord = {
 
 @Injectable()
 export class WorkerAiService implements OnModuleInit, OnModuleDestroy {
-  private unregister?: () => void;
+  private subscription?: Subscription;
   private readonly processed: AnalysisRecord[] = [];
 
   constructor(
-    private readonly domains: DomainsService,
+    private readonly queue: TaskQueueService,
     private readonly renderer: MarkdownRenderer,
   ) {}
 
   onModuleInit(): void {
-    this.unregister = this.domains.registerWorker<AnalysisPayload>(
+    this.subscription = this.queue.consume<AnalysisPayload>(
       TaskType.ANALYZE_SOURCE,
       async (task) => {
         const payload = task.payload;
@@ -47,12 +47,12 @@ export class WorkerAiService implements OnModuleInit, OnModuleDestroy {
           detail: `analysis prepared for ${payload.articleSlug}`,
         };
       },
-      'AI source analyzer',
+      { description: 'AI source analyzer' },
     );
   }
 
   onModuleDestroy(): void {
-    this.unregister?.();
+    this.subscription?.unsubscribe();
   }
 
   status() {

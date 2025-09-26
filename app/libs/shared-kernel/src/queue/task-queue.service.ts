@@ -25,12 +25,25 @@ export interface ConsumeOptions {
   readonly description?: string;
 }
 
+export interface TaskConsumerDescriptor {
+  readonly id: string;
+  readonly type: TaskType;
+  readonly description?: string;
+  readonly registeredAt: Date;
+}
+
+interface RegisteredConsumer extends TaskConsumerDescriptor {
+  readonly subscription: Subscription;
+}
+
 @Injectable()
 export class TaskQueueService implements OnModuleDestroy {
   private readonly logger = new Logger(TaskQueueService.name);
   private readonly stream$ = new Subject<TaskMessage>();
   private readonly errors$ = new Subject<TaskProcessingError>();
   private readonly subscriptions = new Set<Subscription>();
+  private readonly consumers = new Map<string, RegisteredConsumer>();
+  private registrationSequence = 0;
 
   publish<TPayload>(task: TaskMessage<TPayload>): void {
     this.logger.debug(`Publishing task ${task.type} (${task.id})`);
@@ -48,6 +61,9 @@ export class TaskQueueService implements OnModuleDestroy {
     handler: TaskHandler<TPayload>,
     options?: ConsumeOptions,
   ): Subscription {
+    const registrationId = this.createRegistrationId(type);
+    const registeredAt = new Date();
+
     const subscription = this.onTask<TPayload>(type)
       .pipe(
         concatMap((task) =>
@@ -81,6 +97,14 @@ export class TaskQueueService implements OnModuleDestroy {
       )
       .subscribe();
 
+    this.registerConsumer({
+      id: registrationId,
+      type,
+      description: options?.description,
+      registeredAt,
+      subscription,
+    });
+
     if (options?.description) {
       this.logger.log(
         `Registered handler for ${type} (${options.description})`,
@@ -90,6 +114,11 @@ export class TaskQueueService implements OnModuleDestroy {
     }
 
     this.subscriptions.add(subscription);
+    subscription.add(() => {
+      this.subscriptions.delete(subscription);
+      this.unregisterConsumer(registrationId);
+    });
+
     return subscription;
   }
 
@@ -97,12 +126,28 @@ export class TaskQueueService implements OnModuleDestroy {
     return this.errors$.asObservable();
   }
 
+  registeredConsumers(): number {
+    return this.consumers.size;
+  }
+
+  listConsumers(): TaskConsumerDescriptor[] {
+    return Array.from(this.consumers.values()).map(
+      ({ id, type, description, registeredAt }) => ({
+        id,
+        type,
+        description,
+        registeredAt,
+      }),
+    );
+  }
+
   onModuleDestroy(): void {
     this.logger.log('Shutting down task queue');
-    for (const subscription of this.subscriptions) {
+    for (const subscription of Array.from(this.subscriptions.values())) {
       subscription.unsubscribe();
     }
     this.subscriptions.clear();
+    this.consumers.clear();
     this.stream$.complete();
     this.errors$.complete();
   }
@@ -130,5 +175,23 @@ export class TaskQueueService implements OnModuleDestroy {
     }
 
     return new Error(JSON.stringify(error));
+  }
+
+  private createRegistrationId(type: TaskType): string {
+    this.registrationSequence += 1;
+    return `${type}:${this.registrationSequence}`;
+  }
+
+  private registerConsumer(consumer: RegisteredConsumer): void {
+    this.consumers.set(consumer.id, consumer);
+  }
+
+  private unregisterConsumer(registrationId: string): void {
+    if (!this.consumers.has(registrationId)) {
+      return;
+    }
+
+    this.logger.log(`Unregistered handler ${registrationId}`);
+    this.consumers.delete(registrationId);
   }
 }

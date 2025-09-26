@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { SharedKernelModule } from '@synop/shared-kernel';
+import { RenderModule } from '@synop/rendering';
 import { FrontendController } from './frontend.controller';
 import { FrontendService } from './frontend.service';
 
 @Module({
-  imports: [SharedKernelModule],
+  imports: [RenderModule],
   controllers: [FrontendController],
   providers: [FrontendService],
 })

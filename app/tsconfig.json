@@ -22,17 +22,17 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@synop/domains": [
-        "libs/domains/src"
-      ],
-      "@synop/domains/*": [
-        "libs/domains/src/*"
-      ],
       "@synop/shared-kernel": [
         "libs/shared-kernel/src"
       ],
       "@synop/shared-kernel/*": [
         "libs/shared-kernel/src/*"
+      ],
+      "@synop/rendering": [
+        "libs/rendering/src"
+      ],
+      "@synop/rendering/*": [
+        "libs/rendering/src/*"
       ]
     }
   }

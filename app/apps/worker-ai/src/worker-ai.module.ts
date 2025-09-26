@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { DomainsModule } from '@synop/domains';
+import { SharedKernelModule } from '@synop/shared-kernel';
 import { WorkerAiController } from './worker-ai.controller';
 import { WorkerAiService } from './worker-ai.service';
 
 @Module({
-  imports: [DomainsModule],
+  imports: [SharedKernelModule],
   controllers: [WorkerAiController],
   providers: [WorkerAiService],
 })

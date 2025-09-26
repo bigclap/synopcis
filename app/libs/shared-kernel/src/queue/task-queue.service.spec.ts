@@ -36,6 +36,29 @@ describe('TaskQueueService', () => {
     expect(processed).toEqual(['einstein']);
   });
 
+  it('tracks registered consumers', async () => {
+    expect(service.registeredConsumers()).toBe(0);
+
+    const subscription = service.consume(TaskType.RENDER_STATIC, () => undefined, {
+      description: 'noop handler',
+    });
+
+    expect(service.registeredConsumers()).toBe(1);
+    expect(service.listConsumers()).toEqual([
+      expect.objectContaining({
+        type: TaskType.RENDER_STATIC,
+        description: 'noop handler',
+      }),
+    ]);
+
+    subscription.unsubscribe();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(service.registeredConsumers()).toBe(0);
+    expect(service.listConsumers()).toEqual([]);
+  });
+
   it('emits errors when consumer throws', async () => {
     const errors: string[] = [];
     service.errors().subscribe((error) => errors.push(error.error.message));

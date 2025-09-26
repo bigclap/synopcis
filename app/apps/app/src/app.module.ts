@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { DomainsModule } from '@synop/domains';
+import { SharedKernelModule } from '@synop/shared-kernel';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 @Module({
-  imports: [DomainsModule],
+  imports: [SharedKernelModule],
   controllers: [AppController],
   providers: [AppService],
 })

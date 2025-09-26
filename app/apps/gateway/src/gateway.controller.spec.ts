@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DomainsModule } from '@synop/domains';
+import { SharedKernelModule } from '@synop/shared-kernel';
 import { TaskType } from '@synop/shared-kernel';
 import { GatewayController } from './gateway.controller';
 import { GatewayService } from './gateway.service';
@@ -9,7 +9,7 @@ describe('GatewayController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DomainsModule],
+      imports: [SharedKernelModule],
       controllers: [GatewayController],
       providers: [GatewayService],
     }).compile();
@@ -25,5 +25,17 @@ describe('GatewayController', () => {
     const result = await controller.enqueueRender({ slug: 'relativity' });
     expect(result.type).toBe(TaskType.RENDER_STATIC);
     expect(result.payload).toEqual({ slug: 'relativity' });
+  });
+
+  it('normalizes viewer context when scheduling render tasks', async () => {
+    const result = await controller.enqueueRender({
+      slug: 'relativity',
+      viewer: { id: 'user-1', roles: ['member'], attributes: { locale: 'en' } },
+    });
+
+    expect(result.payload).toEqual({
+      slug: 'relativity',
+      viewer: { id: 'user-1', roles: ['member'], attributes: { locale: 'en' } },
+    });
   });
 });
