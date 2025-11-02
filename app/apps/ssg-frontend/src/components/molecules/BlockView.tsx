@@ -1,27 +1,32 @@
 import React from 'react';
 import SourceLink from '@/components/atoms/SourceLink';
 import AlternativesIndicator from '@/components/atoms/AlternativesIndicator';
-import { Block } from '@/app/mock-data'; // Import the type from mock-data
+import { RenderableBlock } from '@/types/phenomenon';
+import ReactMarkdown from 'react-markdown';
 
 type BlockViewProps = {
-  block: Block;
+  block: RenderableBlock;
 };
 
 const BlockView: React.FC<BlockViewProps> = ({ block }) => {
   const renderContent = () => {
-    if (block.type === 'heading' && block.level) {
-      const Tag = `h${block.level}` as keyof JSX.IntrinsicElements;
-      return <Tag>{block.content}</Tag>;
-    }
-    return <p>{block.content}</p>;
+    // react-markdown will handle headings, paragraphs, quotes, etc.
+    return <ReactMarkdown>{block.content}</ReactMarkdown>;
   };
 
   return (
     <div style={{ padding: '10px', borderBottom: '1px solid #eee' }}>
       {renderContent()}
       <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
-        {block.sourceUrl && <SourceLink url={block.sourceUrl} />}
-        {block.alternativesCount && block.alternativesCount > 0 && (
+        {block.source?.type === 'web' && block.source.url && (
+          <SourceLink url={block.source.url} />
+        )}
+        {/* You might want a different component for offline sources */}
+        {block.source?.type === 'offline' && block.source.identifier && (
+          <span>Source: {block.source.identifier}</span>
+        )}
+
+        {block.alternativesCount > 1 && ( // Show indicator if there are alternatives
           <AlternativesIndicator count={block.alternativesCount} />
         )}
       </div>
