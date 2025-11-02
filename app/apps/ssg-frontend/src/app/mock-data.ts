@@ -94,3 +94,18 @@ export const mockConcepts = [
     type: 'concept',
   },
 ];
+
+export const mockPhenomenonProperties = [
+  {
+    property: 'Born',
+    value: 'March 14, 1879',
+  },
+  {
+    property: 'Died',
+    value: 'April 18, 1955',
+  },
+  {
+    property: 'Citizenship',
+    value: 'Germany, Switzerland, United States',
+  },
+];

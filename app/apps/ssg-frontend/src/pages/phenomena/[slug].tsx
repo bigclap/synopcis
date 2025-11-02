@@ -1,5 +1,7 @@
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import PhenomenonView from '@/components/organisms/PhenomenonView';
+import PhenomenonCard from '@/components/molecules/PhenomenonCard';
+import { mockPhenomenonProperties } from '@/app/mock-data';
 import { RenderablePhenomenon, Manifest, RenderableBlock } from '@/types/phenomenon';
 import path from 'path';
 import { promises as fs } from 'fs';
@@ -22,7 +24,13 @@ const PhenomenonPage: NextPage<PhenomenonPageProps> = ({ phenomenon }) => {
   }
 
   // The PhenomenonView now needs to be compatible with RenderablePhenomenon
-  return <PhenomenonView phenomenon={phenomenon} />;
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-4xl font-bold mb-4">{phenomenon.title}</h1>
+      <PhenomenonCard properties={mockPhenomenonProperties} />
+      <PhenomenonView phenomenon={phenomenon} />
+    </div>
+  );
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
