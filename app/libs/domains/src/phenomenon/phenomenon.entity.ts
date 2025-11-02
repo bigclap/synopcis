@@ -9,6 +9,9 @@ export class PhenomenonEntity {
   @Column({ unique: true })
   slug: string;
 
+  @Column()
+  userId: string;
+
   @OneToMany(() => PhenomenonBlockEntity, (block) => block.phenomenon)
   blocks: PhenomenonBlockEntity[];
 }
