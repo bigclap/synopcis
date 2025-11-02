@@ -1,52 +1,114 @@
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
 import PhenomenonView from '@/components/organisms/PhenomenonView';
-import { mockPhenomena, Phenomenon } from '@/app/mock-data';
+import { RenderablePhenomenon, Manifest, RenderableBlock } from '@/types/phenomenon';
+import path from 'path';
+import { promises as fs } from 'fs';
+
+// Helper to construct the correct path to the public directory
+const getPublicDirPath = () => {
+  // The npm script `dev:ssg` is run from the `app/` directory,
+  // and the Next.js project root is `apps/ssg-frontend`.
+  return path.join(process.cwd(), 'apps/ssg-frontend/public');
+};
+
 
 type PhenomenonPageProps = {
-  phenomenon: Phenomenon | null;
+  phenomenon: RenderablePhenomenon | null;
 };
 
 const PhenomenonPage: NextPage<PhenomenonPageProps> = ({ phenomenon }) => {
   if (!phenomenon) {
-    // This can be a custom 404 page or a simple message
     return <div>Phenomenon not found.</div>;
   }
 
+  // The PhenomenonView now needs to be compatible with RenderablePhenomenon
   return <PhenomenonView phenomenon={phenomenon} />;
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  // We can pre-render some paths at build time if we want,
-  // but for a purely ISR/on-demand approach, we can return an empty array.
-  const paths = mockPhenomena.map((p) => ({
-    params: { slug: p.slug },
-  }));
+  // In a real app, you'd scan the public directory for all phenomenon slugs
+  // For this task, we'll hardcode it.
+  const slugs = ['quantum-mechanics'];
+  const paths = slugs.map((slug) => ({ params: { slug } }));
 
   return {
     paths,
-    fallback: 'blocking', // or true, if you want to show a fallback UI
+    fallback: 'blocking', // or 'true' to show a fallback UI
   };
 };
 
 export const getStaticProps: GetStaticProps<PhenomenonPageProps> = async (context) => {
   const { slug } = context.params as { slug: string };
 
-  // In a real app, you'd fetch this from an API.
-  // Here, we're finding it in our mock data.
-  const phenomenon = mockPhenomena.find((p) => p.slug === slug) || null;
+  try {
+    const publicDir = getPublicDirPath();
+    const manifestPath = path.join(publicDir, slug, 'manifest.json');
 
-  if (!phenomenon) {
-    return {
-      notFound: true,
+    // 1. Read the manifest file from the filesystem
+    const manifestContent = await fs.readFile(manifestPath, 'utf-8');
+    const manifest: Manifest = JSON.parse(manifestContent);
+
+    // 2. Process the structure to build the list of renderable blocks
+    const renderableBlocksPromises = manifest.structure.map(async (structureNode) => {
+      const blockData = manifest.blocks[structureNode.block_id];
+      if (!blockData) {
+        console.warn(`Block data not found for block_id: ${structureNode.block_id}`);
+        return null;
+      }
+
+      // Find the "winning" alternative based on votes for the default language
+      const winningAlternative = blockData.alternatives
+        .filter((alt) => alt.lang === manifest.default_lang)
+        .sort((a, b) => b.votes - a.votes)[0]; // Get the one with the most votes
+
+      if (!winningAlternative) {
+        console.warn(`No suitable alternative found for block_id: ${structureNode.block_id}`);
+        return null;
+      }
+
+      // Read the markdown content from its file
+      const contentPath = path.join(publicDir, slug, winningAlternative.file);
+      const content = await fs.readFile(contentPath, 'utf-8');
+
+      const renderableBlock: RenderableBlock = {
+        id: structureNode.block_id,
+        type: blockData.type,
+        level: structureNode.level,
+        content,
+        source: winningAlternative.source,
+        alternativesCount: blockData.alternatives.length,
+      };
+      return renderableBlock;
+    });
+
+    // Wait for all file reads to complete and filter out any nulls
+    const renderableBlocks = (await Promise.all(renderableBlocksPromises)).filter(
+      (block): block is RenderableBlock => block !== null
+    );
+
+    // If no blocks could be rendered, the page is not found
+    if (renderableBlocks.length === 0) {
+      return { notFound: true };
+    }
+
+    const phenomenon: RenderablePhenomenon = {
+      slug: manifest.article_slug,
+      title: manifest.title,
+      blocks: renderableBlocks,
     };
-  }
 
-  return {
-    props: {
-      phenomenon,
-    },
-    // revalidate: 60, // Optional: re-generate the page every 60 seconds
-  };
+    return {
+      props: {
+        phenomenon,
+      },
+      // Optional: Enable Incremental Static Regeneration (ISR)
+      // revalidate: 60, // seconds
+    };
+  } catch (error) {
+    // If the manifest file doesn't exist or there's a parsing error, treat as a 404
+    console.error(`Error building page for slug "${slug}":`, error);
+    return { notFound: true };
+  }
 };
 
 export default PhenomenonPage;

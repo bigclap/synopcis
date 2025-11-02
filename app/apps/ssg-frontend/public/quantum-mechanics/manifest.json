@@ -1,0 +1,125 @@
+{
+  "article_slug": "quantum-mechanics",
+  "title": "Квантовая механика",
+  "last_updated": "2025-11-03T14:20:00Z",
+  "default_lang": "ru",
+  "structure": [
+    {
+      "block_id": "b001",
+      "level": 1
+    },
+    {
+      "block_id": "b002",
+      "level": 2
+    },
+    {
+      "block_id": "b003",
+      "level": 1
+    },
+    {
+      "block_id": "b004",
+      "level": 2
+    },
+    {
+      "block_id": "b005",
+      "level": 2
+    },
+    {
+      "block_id": "b006",
+      "level": 3
+    }
+  ],
+  "blocks": {
+    "b001": {
+      "type": "heading",
+      "alternatives": [
+        {
+          "file": "ru/b001-heading.md",
+          "lang": "ru",
+          "votes": 150,
+          "source": { "type": "offline", "identifier": "ISBN:978-5-9221-1473-6", "page": "12" },
+          "trust_score": 85
+        }
+      ]
+    },
+    "b002": {
+      "type": "text",
+      "alternatives": [
+        {
+          "file": "ru/b002-definition-short.md",
+          "lang": "ru",
+          "votes": 250,
+          "concepts": ["physics", "definition"],
+          "source": { "type": "web", "url": "https://example.com/physics/qm-intro" },
+          "trust_score": 78
+        },
+        {
+          "file": "ru/b002-definition-feynman.md",
+          "lang": "ru",
+          "votes": 180,
+          "concepts": ["physics", "feynman-lectures"],
+          "source": { "type": "offline", "identifier": "ISBN:978-5-9518-0400-9", "page": "45" },
+          "trust_score": 95
+        },
+        {
+          "file": "en/b002-definition-academic.md",
+          "lang": "en",
+          "votes": 320,
+          "concepts": ["physics", "definition"],
+          "source": { "type": "web", "url": "https://plato.stanford.edu/entries/qm/" },
+          "trust_score": 98
+        }
+      ]
+    },
+    "b003": {
+      "type": "heading",
+      "alternatives": [
+        {
+          "file": "ru/b003-history-heading.md",
+          "lang": "ru",
+          "votes": 145,
+          "source": null
+        }
+      ]
+    },
+    "b004": {
+      "type": "text",
+      "alternatives": [
+        {
+          "file": "ru/b004-history-planck.md",
+          "lang": "ru",
+          "votes": 210,
+          "concepts": ["history", "max-planck"],
+          "source": { "type": "web", "url": "https://.../history-of-qm" },
+          "trust_score": 80
+        }
+      ]
+    },
+    "b005": {
+      "type": "text",
+      "alternatives": [
+        {
+          "file": "ru/b005-history-einstein.md",
+          "lang": "ru",
+          "votes": 195,
+          "concepts": ["history", "albert-einstein"],
+          "source": { "type": "offline", "identifier": "DOI:10.1002/andp.19053220607", "page": "132" },
+          "trust_score": 99
+        }
+      ]
+    },
+    "b006": {
+      "type": "quote",
+      "alternatives": [
+        {
+          "file": "ru/b006-quote-bohr.md",
+          "lang": "ru",
+          "votes": 90,
+          "concepts": ["niels-bohr", "quote"],
+          "source": { "type": "offline", "identifier": "...", "page": "..." },
+          "trust_score": 92
+        }
+      ]
+    }
+  }
+}
