@@ -4,3 +4,4 @@ app/dist/
 app/coverage/
 .DS_Store
 npm-debug.log*
+*.log
