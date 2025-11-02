@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import {
   GitCommitRecord,
+  InMemoryObjectStorageClient,
   LocalGitRepositoryClient,
   USERS_REPOSITORY,
   UsersRepository,
@@ -28,6 +29,12 @@ describe('WorkerGitService', () => {
         WorkerGitService,
         { provide: LocalGitRepositoryClient, useValue: git },
         { provide: USERS_REPOSITORY, useValue: users },
+        {
+          provide: InMemoryObjectStorageClient,
+          useValue: {
+            upload: jest.fn(),
+          },
+        },
       ],
     }).compile();
 

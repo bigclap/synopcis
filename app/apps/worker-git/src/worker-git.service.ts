@@ -1,11 +1,15 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   GitCommitRecord,
+  InMemoryObjectStorageClient,
   LocalGitRepositoryClient,
   UserAccount,
   UsersRepository,
   USERS_REPOSITORY,
 } from '@synop/shared-kernel';
+import * as fs from 'fs';
+import * as handlebars from 'handlebars';
+import * as path from 'path';
 
 export interface UpdateFileRequest {
   readonly repository: string;
@@ -20,11 +24,17 @@ export interface UpdateFileRequest {
 @Injectable()
 export class WorkerGitService {
   private commitCount = 0;
+  private readonly template: HandlebarsTemplateDelegate;
 
   constructor(
     private readonly git: LocalGitRepositoryClient,
     @Inject(USERS_REPOSITORY) private readonly users: UsersRepository,
-  ) {}
+    private readonly storage: InMemoryObjectStorageClient,
+  ) {
+    const templatePath = path.join(__dirname, 'templates', 'index.hbs');
+    const templateSource = fs.readFileSync(templatePath, 'utf8');
+    this.template = handlebars.compile(templateSource);
+  }
 
   async updateFile(request: UpdateFileRequest): Promise<GitCommitRecord> {
     const author = await this.loadAuthor(request.userId);
@@ -44,7 +54,21 @@ export class WorkerGitService {
     });
 
     this.commitCount += 1;
+
+    await this.generateStaticHtml(request.repository);
+
     return commit;
+  }
+
+  private async generateStaticHtml(repository: string): Promise<void> {
+    const html = this.template({ title: repository });
+
+    await this.storage.upload({
+      bucket: 'pages',
+      key: `${repository}/index.html`,
+      body: Buffer.from(html),
+      contentType: 'text/html',
+    });
   }
 
   status() {

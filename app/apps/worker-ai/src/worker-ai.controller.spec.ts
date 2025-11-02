@@ -1,5 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DomainsModule } from '@synop/domains';
 import { WorkerAiController } from './worker-ai.controller';
 import { WorkerAiService } from './worker-ai.service';
 
@@ -8,9 +7,19 @@ describe('WorkerAiController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DomainsModule],
       controllers: [WorkerAiController],
-      providers: [WorkerAiService],
+      providers: [
+        {
+          provide: WorkerAiService,
+          useValue: {
+            status: jest.fn(() => ({
+              status: 'ready',
+              processed: 0,
+            })),
+            recentAnalyses: jest.fn(() => []),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get(WorkerAiController);

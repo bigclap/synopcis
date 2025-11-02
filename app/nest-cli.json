@@ -28,15 +28,6 @@
         "tsConfigPath": "libs/domains/tsconfig.lib.json"
       }
     },
-    "frontend": {
-      "type": "application",
-      "root": "apps/frontend",
-      "entryFile": "main",
-      "sourceRoot": "apps/frontend/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/frontend/tsconfig.app.json"
-      }
-    },
     "gateway": {
       "type": "application",
       "root": "apps/gateway",
