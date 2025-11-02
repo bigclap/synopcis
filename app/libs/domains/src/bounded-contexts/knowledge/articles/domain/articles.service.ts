@@ -1,50 +1,75 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Article } from './article.entity';
 import {
-  ARTICLE_REPOSITORY,
-  ArticleAggregate,
-  ArticleRepository,
-  ChangeArticleStatusCommand,
   CreateArticleCommand,
+  UpdateArticleMetadataCommand,
+  ChangeArticleStatusCommand,
   FreezeArticleCommand,
   LinkArticleConceptCommand,
-  UpdateArticleMetadataCommand,
 } from './articles.domain.entity';
 
 @Injectable()
 export class ArticlesDomainService {
   constructor(
-    @Inject(ARTICLE_REPOSITORY)
-    private readonly repository: ArticleRepository,
+    @InjectRepository(Article)
+    private readonly repository: Repository<Article>,
   ) {}
 
-  async create(command: CreateArticleCommand): Promise<ArticleAggregate> {
-    // TODO: implement article creation
-    throw new Error('ArticlesDomainService.create not implemented');
+  async create(command: CreateArticleCommand): Promise<Article> {
+    const article = this.repository.create({
+      slug: command.slug,
+      git_repo_name: command.slug,
+    });
+    return this.repository.save(article);
   }
 
   async updateMetadata(
     command: UpdateArticleMetadataCommand,
-  ): Promise<ArticleAggregate> {
+  ): Promise<Article> {
+    const article = await this.repository.findOneBy({ id: command.articleId });
+    if (!article) {
+      throw new Error('Article not found');
+    }
     // TODO: implement metadata update
-    throw new Error('ArticlesDomainService.updateMetadata not implemented');
+    // article.title = command.title ?? article.title;
+    // article.summary = command.summary ?? article.summary;
+    // article.tags = command.tags ?? article.tags;
+    // article.canonicalConceptId = command.canonicalConceptId ?? article.canonicalConceptId;
+    return this.repository.save(article);
   }
 
   async changeStatus(
     command: ChangeArticleStatusCommand,
-  ): Promise<ArticleAggregate> {
+  ): Promise<Article> {
+    const article = await this.repository.findOneBy({ id: command.articleId });
+    if (!article) {
+      throw new Error('Article not found');
+    }
     // TODO: implement status change
-    throw new Error('ArticlesDomainService.changeStatus not implemented');
+    // article.status = command.status;
+    return this.repository.save(article);
   }
 
-  async freeze(command: FreezeArticleCommand): Promise<ArticleAggregate> {
+  async freeze(command: FreezeArticleCommand): Promise<Article> {
+    const article = await this.repository.findOneBy({ id: command.articleId });
+    if (!article) {
+      throw new Error('Article not found');
+    }
     // TODO: implement freeze logic
-    throw new Error('ArticlesDomainService.freeze not implemented');
+    // article.frozenUntil = command.frozenUntil;
+    return this.repository.save(article);
   }
 
   async linkConcept(
     command: LinkArticleConceptCommand,
-  ): Promise<ArticleAggregate> {
+  ): Promise<Article> {
+    const article = await this.repository.findOneBy({ id: command.articleId });
+    if (!article) {
+      throw new Error('Article not found');
+    }
     // TODO: implement concept linking
-    throw new Error('ArticlesDomainService.linkConcept not implemented');
+    return this.repository.save(article);
   }
 }
