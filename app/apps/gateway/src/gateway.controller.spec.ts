@@ -1,17 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DomainsModule } from '@synop/domains';
-import { TaskType } from '@synop/shared-kernel';
 import { GatewayController } from './gateway.controller';
 import { GatewayService } from './gateway.service';
+import { TaskType } from '@synop/shared-kernel';
 
 describe('GatewayController', () => {
   let controller: GatewayController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DomainsModule],
       controllers: [GatewayController],
-      providers: [GatewayService],
+      providers: [
+        {
+          provide: GatewayService,
+          useValue: {
+            scheduleRenderTask: jest.fn((dto) => ({
+              type: TaskType.RENDER_STATIC,
+              payload: dto,
+            })),
+            scheduleAiAnalysis: jest.fn((dto) => ({
+              type: TaskType.ANALYZE_SOURCE,
+              payload: dto,
+            })),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get(GatewayController);

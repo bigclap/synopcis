@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   GitCommitRecord,
+  InMemoryObjectStorageClient,
   LocalGitRepositoryClient,
   USERS_REPOSITORY,
   UsersRepository,
@@ -30,6 +31,12 @@ describe('WorkerGitController', () => {
         WorkerGitService,
         { provide: LocalGitRepositoryClient, useValue: git },
         { provide: USERS_REPOSITORY, useValue: users },
+        {
+          provide: InMemoryObjectStorageClient,
+          useValue: {
+            upload: jest.fn(),
+          },
+        },
       ],
     }).compile();
 

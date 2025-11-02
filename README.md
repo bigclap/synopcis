@@ -138,7 +138,6 @@
 - `apps/gateway` — HTTP-шлюз для постановки задач рендера, AI-анализов и других фоновых операций.
 - `apps/worker-ai` — реактивный воркер для анализа источников; использует общую очередь и модуль Markdown.
 - `apps/worker-git` — воркер для зеркалирования git-коммитов, работает с in-memory клиентом Git.
-- `apps/frontend` — сервис рендеринга, переиспользует Markdown-движок и выдаёт манифест/HTML.
 - `libs/shared-kernel` — общие DTO, очередь задач, клиенты Git/MinIO/PostgreSQL и Markdown-рендерер.
 - `libs/domains` — доменная обвязка очереди: публикация задач и регистрация воркеров.
 
@@ -162,7 +161,7 @@ cd ..
 docker compose up --build
 ```
 
-Для локальной разработки доступны отдельные скрипты `npm run start:gateway`, `npm run start:worker:ai`, `npm run start:worker:git`, `npm run start:frontend`.
+Для локальной разработки доступны отдельные скрипты `npm run start:gateway`, `npm run start:worker:ai`, `npm run start:worker:git`.
 
 **Тесты**
 

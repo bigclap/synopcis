@@ -1,16 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DomainsModule } from '@synop/domains';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { DomainsService } from '@synop/domains';
+import { TaskQueueService } from '@synop/shared-kernel';
+import { of } from 'rxjs';
 
 describe('AppController', () => {
   let controller: AppController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [DomainsModule],
       controllers: [AppController],
-      providers: [AppService],
+      providers: [
+        {
+          provide: AppService,
+          useValue: {
+            status: jest.fn(() => ({
+              workers: [],
+              errorCount: 0,
+              lastError: null,
+            })),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get(AppController);
