@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, UsePipes, ValidationPipe } from '@nestjs/common';
 import { CreateAiAnalysisTaskDto } from './dto/create-ai-analysis.dto';
 import { CreateRenderTaskDto } from './dto/create-render-task.dto';
+import { CreateIngestionTaskDto } from './dto/create-ingestion-task.dto';
 import { GatewayService } from './gateway.service';
 
 @Controller('tasks')
@@ -26,5 +27,10 @@ export class GatewayController {
   @Post('analyze')
   async enqueueAnalysis(@Body() dto: CreateAiAnalysisTaskDto) {
     return this.gatewayService.scheduleAiAnalysis(dto);
+  }
+
+  @Post('ingest')
+  async enqueueIngestion(@Body() dto: CreateIngestionTaskDto) {
+    return this.gatewayService.scheduleIngestion(dto);
   }
 }
