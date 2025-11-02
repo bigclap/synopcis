@@ -33,6 +33,9 @@
       ],
       "@synop/shared-kernel/*": [
         "libs/shared-kernel/src/*"
+      ],
+      "@/*": [
+        "apps/ssg-frontend/src/*"
       ]
     }
   }
