@@ -94,6 +94,7 @@ export const getStaticProps: GetStaticProps<PhenomenonPageProps> = async (contex
     const phenomenon: RenderablePhenomenon = {
       slug: manifest.article_slug,
       title: manifest.title,
+      cardData: manifest.card || undefined,
       blocks: renderableBlocks,
     };
 

@@ -24,11 +24,26 @@ export interface StructureNode {
   level: number;
 }
 
+export interface CardLink {
+  text: string;
+  slug: string;
+}
+
+export interface CardProperty {
+  property: CardLink;
+  value: CardLink;
+}
+
+export interface PhenomenonCardData {
+  properties: CardProperty[];
+}
+
 export interface Manifest {
   article_slug: string;
   title: string;
   last_updated: string;
   default_lang: string;
+  card?: PhenomenonCardData;
   structure: StructureNode[];
   blocks: Record<string, BlockData>;
 }
@@ -46,5 +61,6 @@ export interface RenderableBlock {
 export interface RenderablePhenomenon {
   slug: string;
   title: string;
+  cardData?: PhenomenonCardData;
   blocks: RenderableBlock[];
 }

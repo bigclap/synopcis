@@ -3,6 +3,30 @@
   "title": "Квантовая механика",
   "last_updated": "2025-11-03T14:20:00Z",
   "default_lang": "ru",
+  "card": {
+    "properties": [
+      {
+        "property": {
+          "text": "Branch of",
+          "slug": "branch-of"
+        },
+        "value": {
+          "text": "Physics",
+          "slug": "physics"
+        }
+      },
+      {
+        "property": {
+          "text": "Proposed by",
+          "slug": "proposed-by"
+        },
+        "value": {
+          "text": "Max Planck",
+          "slug": "max-planck"
+        }
+      }
+    ]
+  },
   "structure": [
     {
       "block_id": "b001",
