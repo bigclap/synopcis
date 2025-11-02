@@ -1,36 +1,26 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend Development Guide (ssg-frontend)
+
+This document outlines the key principles and practices for developing the Next.js frontend application.
+
+## Core Architecture
+
+- **Framework**: Next.js
+- **Location**: `app/apps/ssg-frontend`
+- **Component Design**: The project follows the **Atomic Design** pattern. Components should be organized into `atoms`, `molecules`, and `organisms` to ensure modularity and reusability.
+- **Rendering Strategy**: The application uses an on-demand, pre-rendering strategy similar to **Incremental Static Regeneration (ISR)**. Pages that do not exist should be generated on-the-fly upon the first request and subsequently served as static assets. Full Static Site Generation (SSG) at build time should be avoided.
+
+## Data Handling and Backend Interaction
+
+- **Backend Independence**: **Do not make changes to the backend.** The frontend should be developed and tested independently.
+- **Mock Data**: All interactions with the backend API must be simulated using mock data during development.
+  - **Environment**: Mock data should **only** be active when `NODE_ENV` is `'development'`.
+  - **Implementation**: The data fetching logic, including `fetch` calls and mock implementations, must be encapsulated within custom hooks (e.g., `useArticle`) or service modules. This logic should **not** reside directly inside UI components.
 
 ## Getting Started
 
-First, run the development server:
+To run the frontend development server, navigate to the `app` directory and run the start command. It is recommended to specify a custom port to avoid potential conflicts with other services.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd app
+npm run dev:ssg -- -p 3100
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
