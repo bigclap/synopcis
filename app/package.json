@@ -23,10 +23,7 @@
     "start:worker:ai": "nest start worker-ai",
     "start:worker:ai:dev": "nest start --watch worker-ai",
     "start:worker:git": "nest start worker-git",
-    "start:worker:git:dev": "nest start --watch worker-git",
-    "dev:ssg": "next dev apps/ssg-frontend",
-    "build:ssg": "next build apps/ssg-frontend",
-    "start:ssg": "next start apps/ssg-frontend"
+    "start:worker:git:dev": "nest start --watch worker-git"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -38,23 +35,15 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "handlebars": "^4.7.8",
-    "next": "16.0.1",
     "pg": "^8.13.1",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
-    "react-markdown": "^10.1.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "simple-git": "^3.27.0",
     "typeorm": "^0.3.27",
     "uuid": "^13.0.0",
-    "wikipedia-js": "^0.0.6",
-    "@mantine/core": "^7.11.1",
-    "@mantine/hooks": "^7.11.1",
-    "@emotion/react": "^11.13.0"
+    "wikipedia-js": "^0.0.6"
   },
   "devDependencies": {
-    "postcss-preset-mantine": "^1.17.0",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
@@ -64,8 +53,6 @@
     "@types/handlebars": "^4.0.40",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.18.13",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
     "@types/supertest": "^6.0.2",
     "@types/uuid": "^10.0.0",
     "eslint": "^9.18.0",
