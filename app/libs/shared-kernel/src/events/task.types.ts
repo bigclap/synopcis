@@ -6,6 +6,7 @@ export enum TaskType {
   INGEST_WIKIPEDIA = 'ingest.wikipedia',
   CREATE_PHENOMENON = 'create.phenomenon',
   GENERATE_AI_DRAFT = 'generate.ai.draft',
+  AI_DRAFT = 'ai.draft',
 }
 
 export type TaskPriority = 'low' | 'normal' | 'high';

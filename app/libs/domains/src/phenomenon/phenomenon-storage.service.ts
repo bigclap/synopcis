@@ -1,23 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
-  formatBlockFilePath,
+  GitAuthor,
   GitCommitInput,
   LocalGitRepositoryClient,
+  slugifyBlockLabel,
 } from '@synop/shared-kernel';
 import { Repository } from 'typeorm';
-import { PhenomenonBlockEntity } from './phenomenon-block.entity';
 import { PhenomenonEntity } from './phenomenon.entity';
 import {
-  PhenomenonBlock,
+  NewBlockInput,
   PhenomenonManifest,
-  PhenomenonManifestEntry,
+  BlockAlternative,
+  BlockCatalogEntry,
 } from './phenomenon.types';
+import * as path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface UpdatePhenomenonBlocksInput
   extends Omit<GitCommitInput, 'changes' | 'repository'> {
   readonly phenomenonSlug: string;
-  readonly blocks: PhenomenonBlock[];
+  readonly blocks: NewBlockInput[];
+}
+
+export interface CreatePhenomenonInput {
+  readonly slug: string;
+  readonly title: string;
+  readonly author: GitAuthor;
+  readonly userId: string;
 }
 
 const MANIFEST_FILE_PATH = 'manifest.json';
@@ -28,52 +38,64 @@ export class PhenomenonStorageService {
     private readonly git: LocalGitRepositoryClient,
     @InjectRepository(PhenomenonEntity)
     private readonly phenomenonRepository: Repository<PhenomenonEntity>,
-    @InjectRepository(PhenomenonBlockEntity)
-    private readonly blockRepository: Repository<PhenomenonBlockEntity>,
   ) {}
 
-  async createPhenomenon(phenomenonSlug: string) {
+  async createPhenomenon(
+    input: CreatePhenomenonInput,
+  ): Promise<PhenomenonEntity> {
+    await this.git.initializeRepository(input.slug);
+    const phenomenon = await this.findOrCreatePhenomenon(
+      input.slug,
+      input.userId,
+    );
+
+    const blockId = `b${uuidv4().slice(0, 3)}`;
+    const titleBlock: NewBlockInput = {
+      type: 'heading',
+      lang: 'en',
+      level: 1,
+      content: `# ${input.title.trim()}`,
+      title: input.title,
+    };
+
     const manifest: PhenomenonManifest = {
-      structure: [],
+      article_slug: input.slug,
+      title: input.title,
+      last_updated: new Date().toISOString(),
+      default_lang: 'en',
+      structure: [{ block_id: blockId, level: 1 }],
       blocks: {},
     };
 
-    return this.git.commit({
-      repository: phenomenonSlug,
-      author: {
-        name: 'System',
-        email: 'system@synop.city',
-      },
+    const changes = this.addBlockToManifest(manifest, blockId, titleBlock);
+
+    await this.git.commit({
+      repository: input.slug,
+      author: input.author,
       summary: 'Initial commit',
-      changes: {
-        [MANIFEST_FILE_PATH]: JSON.stringify(manifest, null, 2),
-      },
+      sourceUrl: 'synop://kernel.synop.one/init',
+      changes,
     });
+
+    return phenomenon;
   }
 
   async updatePhenomenonBlocks(input: UpdatePhenomenonBlocksInput) {
-    const phenomenon = await this.findOrCreatePhenomenon(input.phenomenonSlug);
     const manifest = await this.loadManifest(input.phenomenonSlug);
-    const manifestByPath = new Map(manifest.map((entry) => [entry.path, entry]));
-
-    const changes: Record<string, string> = {};
-
-    for (const block of input.blocks) {
-      const filePath = formatBlockFilePath(block);
-      changes[filePath] = block.content;
-
-      const manifestEntry: PhenomenonManifestEntry = {
-        path: filePath,
-        title: block.title,
-        level: block.level,
-      };
-      manifestByPath.set(filePath, manifestEntry);
-
-      await this.upsertBlock(phenomenon, manifestEntry);
+    if (!manifest) {
+      throw new Error(
+        `Manifest for phenomenon "${input.phenomenonSlug}" not found.`,
+      );
     }
 
-    const updatedManifest = Array.from(manifestByPath.values());
-    changes[MANIFEST_FILE_PATH] = JSON.stringify(updatedManifest, null, 2);
+    let changes: Record<string, string> = {};
+
+    for (const block of input.blocks) {
+      const blockId = `b${uuidv4().slice(0, 3)}`;
+      manifest.structure.push({ block_id: blockId, level: block.level });
+      const blockChanges = this.addBlockToManifest(manifest, blockId, block);
+      changes = { ...changes, ...blockChanges };
+    }
 
     return this.git.commit({
       repository: input.phenomenonSlug,
@@ -82,48 +104,63 @@ export class PhenomenonStorageService {
     });
   }
 
-  private async findOrCreatePhenomenon(slug: string): Promise<PhenomenonEntity> {
+  private async findOrCreatePhenomenon(
+    slug: string,
+    userId: string,
+  ): Promise<PhenomenonEntity> {
     let phenomenon = await this.phenomenonRepository.findOneBy({ slug });
     if (!phenomenon) {
-      phenomenon = this.phenomenonRepository.create({ slug });
+      phenomenon = this.phenomenonRepository.create({ slug, userId });
       await this.phenomenonRepository.save(phenomenon);
     }
     return phenomenon;
   }
 
-  private async upsertBlock(
-    phenomenon: PhenomenonEntity,
-    entry: PhenomenonManifestEntry,
-  ) {
-    let block = await this.blockRepository.findOneBy({
-      phenomenon: { id: phenomenon.id },
-      path: entry.path,
-    });
+  private addBlockToManifest(
+    manifest: PhenomenonManifest,
+    blockId: string,
+    block: NewBlockInput,
+  ): Record<string, string> {
+    const safeTitle = slugifyBlockLabel(block.title || block.type);
+    const fileName = `${block.lang}/${blockId}-${safeTitle}.md`;
+    const filePath = path.posix.join(fileName);
 
-    if (block) {
-      block.title = entry.title;
-      block.level = entry.level;
-    } else {
-      block = this.blockRepository.create({
-        phenomenon,
-        path: entry.path,
-        title: entry.title,
-        level: entry.level,
-      });
-    }
+    const alternative: BlockAlternative = {
+      file: filePath,
+      lang: block.lang,
+      votes: 0,
+      concepts: block.concepts || [],
+      source: block.source || null,
+      trust_score: 0,
+    };
 
-    await this.blockRepository.save(block);
+    const catalogEntry: BlockCatalogEntry = {
+      type: block.type,
+      alternatives: [alternative],
+    };
+
+    manifest.blocks[blockId] = catalogEntry;
+    manifest.last_updated = new Date().toISOString();
+
+    const changes = {
+      [filePath]: block.content,
+      [MANIFEST_FILE_PATH]: JSON.stringify(manifest, null, 2),
+    };
+
+    return changes;
   }
 
-  private async loadManifest(repository: string): Promise<PhenomenonManifest> {
+  private async loadManifest(
+    repository: string,
+  ): Promise<PhenomenonManifest | null> {
     const content = await this.git.readFile(repository, MANIFEST_FILE_PATH);
     if (!content) {
-      return [];
+      return null;
     }
     try {
       return JSON.parse(content);
     } catch {
-      return [];
+      return null;
     }
   }
 }

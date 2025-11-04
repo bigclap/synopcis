@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ArticlesDomainService } from '@synop/domains/bounded-contexts/knowledge/articles/domain/articles.service';
-import { LocalGitRepositoryClient } from '@synop/shared-kernel';
+import { LocalGitRepositoryClient, GitAuthor } from '@synop/shared-kernel';
 import { CreateArticleCommand } from '@synop/domains/bounded-contexts/knowledge/articles/domain/articles.domain.entity';
+import { PhenomenonStorageService, NewBlockInput } from '@synop/domains';
 
 @Injectable()
 export class StorageService {
@@ -10,7 +11,23 @@ export class StorageService {
   constructor(
     private readonly articlesDomainService: ArticlesDomainService,
     private readonly gitRepositoryClient: LocalGitRepositoryClient,
+    private readonly phenomenonStorage: PhenomenonStorageService,
   ) {}
+
+  async storePhenomenonBlocks(
+    phenomenonSlug: string,
+    blocks: NewBlockInput[],
+    author: GitAuthor,
+  ) {
+    this.logger.log(`Storing ${blocks.length} blocks for "${phenomenonSlug}"`);
+    await this.phenomenonStorage.updatePhenomenonBlocks({
+      phenomenonSlug,
+      blocks,
+      author,
+      summary: 'AI draft generation',
+      sourceUrl: 'synop://kernel.synop.one/ai-draft',
+    });
+  }
 
   async storeArticle(
     articleName: string,

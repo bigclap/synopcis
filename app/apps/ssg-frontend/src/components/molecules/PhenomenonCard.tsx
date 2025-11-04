@@ -1,26 +1,26 @@
-import Block from '../atoms/Block';
-
-type Block = {
-  content: string;
-  type: string;
-  sort: number;
+type PhenomenonProperty = {
+  property: string;
+  value: string;
 };
 
-type Phenomenon = {
-  id: string;
-  title: string;
-  lang_code: string;
-  blocks: Block[];
+type PhenomenonCardProps = {
+  properties: PhenomenonProperty[];
 };
 
-const PhenomenonCard = ({ phenomenon }: { phenomenon: Phenomenon }) => {
+const PhenomenonCard = ({ properties }: PhenomenonCardProps) => {
   return (
-    <div className="border rounded-lg p-4 mb-4">
-      <h2 className="text-2xl font-bold mb-2">{phenomenon.title}</h2>
-      {phenomenon.blocks.map((block) => (
-        <Block key={block.sort} block={block} />
-      ))}
-    </div>
+    <aside className="w-64 border rounded-lg p-4 bg-gray-50 ml-4 mb-4 float-right">
+      <div className="space-y-2">
+        {properties.map(({ property, value }) => (
+          <div key={property} className="flex justify-between border-b pb-1">
+            <span className="text-sm font-semibold text-gray-600">{property}</span>
+            <a href="#" className="text-sm text-gray-800 hover:underline text-right">
+              {value}
+            </a>
+          </div>
+        ))}
+      </div>
+    </aside>
   );
 };
 

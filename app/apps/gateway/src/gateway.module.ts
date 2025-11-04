@@ -9,6 +9,6 @@ import { SharedKernelModule } from '@synop/shared-kernel';
 @Module({
   imports: [DomainsModule, SharedKernelModule],
   controllers: [GatewayController, PhenomenonController],
-  providers: [GatewayService, PhenomenonService],
+  providers: [GatewayService],
 })
 export class GatewayModule {}
