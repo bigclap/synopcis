@@ -6,12 +6,36 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { MessagePattern } from '@nestjs/microservices';
+import {
+  PhenomenonDomainService,
+  PhenomenonStorageService,
+} from '@synop/domains';
+import { TaskMessage, TaskType } from '@synop/shared-kernel';
 import { UpdateFileDto } from './dto/update-file.dto';
 import { WorkerGitService } from './worker-git.service';
 
 @Controller('worker-git')
 export class WorkerGitController {
-  constructor(private readonly workerGitService: WorkerGitService) {}
+  constructor(
+    private readonly workerGitService: WorkerGitService,
+    private readonly phenomenonStorageService: PhenomenonStorageService,
+    private readonly phenomenonDomainService: PhenomenonDomainService,
+  ) {}
+
+  @MessagePattern(TaskType.CREATE_PHENOMENON)
+  async createPhenomenon(message: TaskMessage<{ phenomenonId: string }>) {
+    const { phenomenonId } = message.payload;
+    const phenomenon = await this.phenomenonDomainService.findPhenomenonById(
+      phenomenonId,
+    );
+    if (!phenomenon) {
+      throw new BadRequestException(
+        `Phenomenon with id ${phenomenonId} was not found`,
+      );
+    }
+    await this.phenomenonStorageService.createPhenomenon(phenomenon.slug);
+  }
 
   @Get('health')
   health() {

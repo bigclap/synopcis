@@ -32,6 +32,25 @@ export class PhenomenonStorageService {
     private readonly blockRepository: Repository<PhenomenonBlockEntity>,
   ) {}
 
+  async createPhenomenon(phenomenonSlug: string) {
+    const manifest: PhenomenonManifest = {
+      structure: [],
+      blocks: {},
+    };
+
+    return this.git.commit({
+      repository: phenomenonSlug,
+      author: {
+        name: 'System',
+        email: 'system@synop.city',
+      },
+      summary: 'Initial commit',
+      changes: {
+        [MANIFEST_FILE_PATH]: JSON.stringify(manifest, null, 2),
+      },
+    });
+  }
+
   async updatePhenomenonBlocks(input: UpdatePhenomenonBlocksInput) {
     const phenomenon = await this.findOrCreatePhenomenon(input.phenomenonSlug);
     const manifest = await this.loadManifest(input.phenomenonSlug);
