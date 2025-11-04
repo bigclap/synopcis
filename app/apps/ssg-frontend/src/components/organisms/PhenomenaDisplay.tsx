@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { usePhenomena } from '@/hooks/phenomena/usePhenomena';
 import { useConcepts } from '@/hooks/concepts/useConcepts';
-import PhenomenonCard from '@/components/molecules/PhenomenonCard';
+import PhenomenonCard from '@/components/organisms/PhenomenonCard';
 import ConceptCard from '@/components/molecules/ConceptCard';
 import Search from '@/components/atoms/Search';
+import { SimpleGrid, Title } from '@mantine/core';
 
 export default function PhenomenaDisplay() {
   const { phenomena } = usePhenomena();
@@ -33,19 +34,26 @@ export default function PhenomenaDisplay() {
   return (
     <div>
       <Search onSearch={handleSearch} />
-      <h1 className="text-4xl font-bold mb-4">Phenomena</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Title order={1} my="xl">
+        Phenomena
+      </Title>
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
         {filteredPhenomena.map((phenomenon) => (
-          <PhenomenonCard key={phenomenon.id} phenomenon={phenomenon} />
+          <PhenomenonCard
+            key={phenomenon.id}
+            properties={phenomenon.cardData.properties}
+          />
         ))}
-      </div>
+      </SimpleGrid>
 
-      <h1 className="text-4xl font-bold my-4">Concepts</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Title order={1} my="xl">
+        Concepts
+      </Title>
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
         {filteredConcepts.map((concept) => (
           <ConceptCard key={concept.key} concept={concept} />
         ))}
-      </div>
+      </SimpleGrid>
     </div>
   );
 }
