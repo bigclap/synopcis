@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StorageService } from './storage.service';
-import { ArticlesDomainService } from '@synop/domains/bounded-contexts/knowledge/articles/domain/articles.service';
+import { ArticlesDomainService } from '@synop/domains';
+import { PhenomenonStorageService } from '../../../libs/domains/src/phenomenon/phenomenon-storage.service';
 import { LocalGitRepositoryClient } from '@synop/shared-kernel';
 
 describe('StorageService', () => {
@@ -22,6 +23,12 @@ describe('StorageService', () => {
           provide: LocalGitRepositoryClient,
           useValue: {
             commitArticle: jest.fn(),
+          },
+        },
+        {
+          provide: PhenomenonStorageService,
+          useValue: {
+            updatePhenomenonBlocks: jest.fn(),
           },
         },
       ],
