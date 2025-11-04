@@ -9,6 +9,7 @@ import { DomainsService } from '@synop/domains';
 import { ArticlesDomainService } from '@synop/domains/bounded-contexts/knowledge/articles/domain/articles.service';
 import { TaskType } from '@synop/shared-kernel';
 import { LocalGitRepositoryClient } from '@synop/shared-kernel';
+import { PhenomenonStorageService } from '../../../libs/domains/src/phenomenon/phenomenon-storage.service';
 
 describe('WorkerIngestionService', () => {
   let service: WorkerIngestionService;
@@ -34,6 +35,12 @@ describe('WorkerIngestionService', () => {
           useValue: {
             create: jest.fn().mockImplementation((dto) => ({ ...dto, git_repo_name: dto.slug })),
             save: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: PhenomenonStorageService,
+          useValue: {
+            updatePhenomenonBlocks: jest.fn(),
           },
         },
       ],

@@ -14,6 +14,11 @@ type AnalysisRecord = {
   completedAt: Date;
 };
 
+type SuggestionsPayload = {
+  phenomenonSlug: string;
+  text: string;
+};
+
 @Injectable()
 export class WorkerAiService implements OnModuleInit, OnModuleDestroy {
   private unregister?: () => void;
@@ -48,6 +53,29 @@ export class WorkerAiService implements OnModuleInit, OnModuleDestroy {
         };
       },
       'AI source analyzer',
+    );
+
+    this.domains.registerWorker<SuggestionsPayload>(
+      TaskType.GET_AI_SUGGESTIONS,
+      async (task) => {
+        const payload = task.payload;
+        const phenomena = ['apple', 'banana', 'orange'];
+        const suggestions = phenomena
+          .filter((phenomenon) => payload.text.includes(phenomenon))
+          .map((phenomenon) => ({
+            text: phenomenon,
+            phenomenonSlug: phenomenon,
+          }));
+
+        return {
+          taskId: task.id,
+          type: task.type,
+          status: 'completed',
+          detail: `suggestions prepared for ${payload.phenomenonSlug}`,
+          payload: suggestions,
+        };
+      },
+      'AI suggestions provider',
     );
   }
 

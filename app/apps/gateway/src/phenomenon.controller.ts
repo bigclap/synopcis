@@ -4,6 +4,7 @@ import { PhenomenonService } from './phenomenon.service';
 import { CreatePhenomenonInput, PhenomenonStorageService } from '@synop/domains';
 import { GatewayService } from './gateway.service';
 import { CreateAiDraftTaskDto } from './dto/create-ai-draft-task.dto';
+import { GetAiSuggestionsDto } from './dto/get-ai-suggestions.dto';
 
 interface AiDraftDto {
   readonly wikipediaArticle: string;
@@ -15,6 +16,7 @@ export class PhenomenonController {
   constructor(
     private readonly phenomenonStorage: PhenomenonStorageService,
     private readonly gateway: GatewayService,
+    private readonly phenomenonService: PhenomenonService,
   ) {}
 
   @Post()
@@ -54,6 +56,19 @@ export class PhenomenonController {
     });
   }
 
+  @Post(':slug/suggestions')
+  async getAiSuggestions(
+    @Param('slug') slug: string,
+    @Body() body: GetAiSuggestionsDto,
+  ) {
+    const userId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'; // TODO: get from session
+    return this.gateway.scheduleAiSuggestions({
+      ...body,
+      phenomenonSlug: slug,
+      userId,
+    });
+  }
+
   @Post()
   createPhenomenon(@Body() createPhenomenonDto: CreatePhenomenonDto) {
     return this.phenomenonService.createPhenomenon(createPhenomenonDto);
@@ -62,5 +77,16 @@ export class PhenomenonController {
   @Get(':articleId')
   getPhenomenonCard(@Param('articleId') articleId: string) {
     return this.phenomenonService.getPhenomenonCard(articleId);
+  }
+
+  private slugify(text: string): string {
+    return text
+      .toString()
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '');
   }
 }

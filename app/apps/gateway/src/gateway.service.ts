@@ -5,6 +5,7 @@ import { CreateRenderTaskDto } from './dto/create-render-task.dto';
 import { CreateIngestionTaskDto } from './dto/create-ingestion-task.dto';
 import { CreateAiDraftTaskDto } from './dto/create-ai-draft-task.dto';
 import { TaskType } from '@synop/shared-kernel';
+import { ScheduleAiSuggestionsDto } from './dto/schedule-ai-suggestions.dto';
 
 @Injectable()
 export class GatewayService {
@@ -42,6 +43,15 @@ export class GatewayService {
       payload: dto,
       correlationId: dto.phenomenonSlug,
       source: 'wikipedia',
+    });
+  }
+
+  async scheduleAiSuggestions(dto: ScheduleAiSuggestionsDto) {
+    return this.domains.publishTask({
+      type: TaskType.GET_AI_SUGGESTIONS,
+      payload: dto,
+      correlationId: dto.phenomenonSlug,
+      source: 'user-input',
     });
   }
 }
