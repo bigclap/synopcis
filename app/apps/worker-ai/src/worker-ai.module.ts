@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { DomainsModule } from '@synop/domains';
 import { WorkerAiController } from './worker-ai.controller';
 import { WorkerAiService } from './worker-ai.service';
 
 @Module({
-  imports: [DomainsModule],
+  imports: [],
   controllers: [WorkerAiController],
   providers: [WorkerAiService],
 })
