@@ -1,8 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { WorkerIngestionModule } from './worker-ingestion.module';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create(WorkerIngestionModule);
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.NATS,
+    options: {
+      servers: [process.env.NATS_URL || 'nats://localhost:4222'],
+    },
+  });
+
+  await app.startAllMicroservices();
   await app.listen(process.env.PORT ? Number(process.env.PORT) : 3001);
 }
 bootstrap();

@@ -1,6 +1,5 @@
-import { Injectable, OnModuleDestroy, OnModuleInit, Logger } from '@nestjs/common';
-import { DomainsService } from '@synop/domains';
-import { TaskType } from '@synop/shared-kernel';
+import { Injectable, Logger } from '@nestjs/common';
+import { TaskMessage } from '@synop/shared-kernel';
 import { WikipediaService } from './wikipedia.service';
 import { LlmService } from './llm.service';
 import { StorageService } from './storage.service';
@@ -25,34 +24,17 @@ type IngestionRecord = {
 };
 
 @Injectable()
-export class WorkerIngestionService implements OnModuleInit, OnModuleDestroy {
-  private unregisterIngestion?: () => void;
-  private unregisterAiDraft?: () => void;
+export class WorkerIngestionService {
   private readonly processed: IngestionRecord[] = [];
   private readonly logger = new Logger(WorkerIngestionService.name);
 
   constructor(
-    private readonly domains: DomainsService,
     private readonly wikipediaService: WikipediaService,
     private readonly llmService: LlmService,
     private readonly storageService: StorageService,
   ) {}
 
-  onModuleInit(): void {
-    this.unregisterIngestion = this.domains.registerWorker<IngestionPayload>(
-      TaskType.INGEST_WIKIPEDIA,
-      this.handleIngestionTask.bind(this),
-      'Wikipedia Ingestion Worker',
-    );
-
-    this.unregisterAiDraft = this.domains.registerWorker<AiDraftPayload>(
-      TaskType.AI_DRAFT,
-      this.handleAiDraftTask.bind(this),
-      'AI Draft Worker',
-    );
-  }
-
-  private async handleAiDraftTask(task) {
+  async aiDraft(task: TaskMessage<AiDraftPayload>) {
     const { phenomenonSlug, wikipediaArticle, lang, userId } = task.payload;
     this.logger.log(`Generating AI draft for "${phenomenonSlug}" from "${wikipediaArticle}" in ${lang}`);
     const { content } = await this.wikipediaService.getArticle(wikipediaArticle, lang);
@@ -75,7 +57,7 @@ export class WorkerIngestionService implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  private async handleIngestionTask(task) {
+  async ingestWikipedia(task: TaskMessage<IngestionPayload>) {
     const { articleName, languages } = task.payload;
     this.logger.log(`Processing article "${articleName}" in languages: ${languages.join(', ')}`);
 
@@ -122,11 +104,6 @@ export class WorkerIngestionService implements OnModuleInit, OnModuleDestroy {
       detail: `Stored article "${articleName}" in ${languages.length} languages.`,
       payload: translatedArticles,
     };
-  }
-
-  onModuleDestroy(): void {
-    this.unregisterIngestion?.();
-    this.unregisterAiDraft?.();
   }
 
   status() {
