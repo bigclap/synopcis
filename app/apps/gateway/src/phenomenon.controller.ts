@@ -1,11 +1,9 @@
 import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { CreatePhenomenonDto } from './dto/create-phenomenon.dto';
+import { PhenomenonService } from './phenomenon.service';
 import { CreatePhenomenonInput, PhenomenonStorageService } from '@synop/domains';
 import { GatewayService } from './gateway.service';
 import { CreateAiDraftTaskDto } from './dto/create-ai-draft-task.dto';
-
-interface CreatePhenomenonDto {
-  readonly title: string;
-}
 
 interface AiDraftDto {
   readonly wikipediaArticle: string;
@@ -56,12 +54,13 @@ export class PhenomenonController {
     });
   }
 
-  private slugify(text: string): string {
-    return text
-      .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^\p{L}\p{N}]+/gu, '-')
-      .replace(/^-+|-+$/g, '')
-      .toLowerCase();
+  @Post()
+  createPhenomenon(@Body() createPhenomenonDto: CreatePhenomenonDto) {
+    return this.phenomenonService.createPhenomenon(createPhenomenonDto);
+  }
+
+  @Get(':articleId')
+  getPhenomenonCard(@Param('articleId') articleId: string) {
+    return this.phenomenonService.getPhenomenonCard(articleId);
   }
 }
