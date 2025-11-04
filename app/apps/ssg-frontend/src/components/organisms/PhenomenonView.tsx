@@ -1,6 +1,7 @@
 import React from 'react';
 import BlockView from '@/components/molecules/BlockView';
 import { RenderablePhenomenon } from '@/types/phenomenon';
+import PhenomenonCard from './PhenomenonCard';
 
 type PhenomenonViewProps = {
   phenomenon: RenderablePhenomenon;
@@ -9,6 +10,7 @@ type PhenomenonViewProps = {
 const PhenomenonView: React.FC<PhenomenonViewProps> = ({ phenomenon }) => {
   return (
     <article>
+      {phenomenon.cardData && <PhenomenonCard cardData={phenomenon.cardData} />}
       {phenomenon.blocks.map((block) => (
         <BlockView key={block.id} block={block} />
       ))}
