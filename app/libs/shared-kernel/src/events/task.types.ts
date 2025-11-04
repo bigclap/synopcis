@@ -7,6 +7,7 @@ export enum TaskType {
   CREATE_PHENOMENON = 'create.phenomenon',
   GENERATE_AI_DRAFT = 'generate.ai.draft',
   AI_DRAFT = 'ai.draft',
+  GET_AI_SUGGESTIONS = 'get.ai.suggestions',
 }
 
 export type TaskPriority = 'low' | 'normal' | 'high';
