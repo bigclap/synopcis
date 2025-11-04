@@ -1,19 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getPhenomena } from '@/services/phenomena/phenomenaService';
 import { mockPhenomena } from '@/app/mock-data';
-
-type Block = {
-  content: string;
-  type: string;
-  sort: number;
-};
-
-type Phenomenon = {
-  id: string;
-  title: string;
-  lang_code: string;
-  blocks: Block[];
-};
+import { Phenomenon } from '@/types/phenomenon';
 
 export const usePhenomena = () => {
   const [phenomena, setPhenomena] = useState<Phenomenon[]>([]);

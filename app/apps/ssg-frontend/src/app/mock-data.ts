@@ -1,22 +1,4 @@
-// Represents a single content block within a phenomenon
-export type Block = {
-  id: string;
-  content: string;
-  type: 'heading' | 'paragraph';
-  level?: 1 | 2 | 3 | 4 | 5 | 6; // For heading type
-  sort: number;
-  sourceUrl?: string;
-  alternativesCount?: number;
-};
-
-// Represents the main entity, like an article or a topic
-export type Phenomenon = {
-  id: string;
-  slug: string; // URL-friendly identifier
-  title: string;
-  lang_code: string;
-  blocks: Block[];
-};
+import { Phenomenon, Block } from '@/types/phenomenon';
 
 export const mockPhenomena: Phenomenon[] = [
   {
@@ -58,6 +40,14 @@ export const mockPhenomena: Phenomenon[] = [
         alternativesCount: 0,
       },
     ],
+    cardData: {
+      properties: [
+        {
+          property: { text: 'Type', slug: 'type' },
+          value: { text: 'Placeholder Text', slug: 'placeholder-text' },
+        },
+      ],
+    },
   },
   {
     id: '2',
@@ -74,6 +64,14 @@ export const mockPhenomena: Phenomenon[] = [
         alternativesCount: 1,
       },
     ],
+    cardData: {
+      properties: [
+        {
+          property: { text: 'Period', slug: 'period' },
+          value: { text: '18th-19th Century', slug: '18th-19th-century' },
+        },
+      ],
+    },
   },
 ];
 

@@ -1,15 +1,4 @@
-type Block = {
-  content: string;
-  type: string;
-  sort: number;
-};
-
-type Phenomenon = {
-  id: string;
-  title: string;
-  lang_code: string;
-  blocks: Block[];
-};
+import { Phenomenon } from '@/types/phenomenon';
 
 export const getPhenomena = async (): Promise<Phenomenon[]> => {
   const res = await fetch('http://localhost:3000/phenomenon');

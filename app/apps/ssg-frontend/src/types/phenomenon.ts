@@ -64,3 +64,22 @@ export interface RenderablePhenomenon {
   cardData?: PhenomenonCardData;
   blocks: RenderableBlock[];
 }
+
+export type Block = {
+  id: string;
+  content: string;
+  type: 'heading' | 'paragraph';
+  level?: 1 | 2 | 3 | 4 | 5 | 6; // For heading type
+  sort: number;
+  sourceUrl?: string;
+  alternativesCount?: number;
+};
+
+export interface Phenomenon {
+  id: string;
+  slug: string;
+  title: string;
+  lang_code: string;
+  blocks: Block[];
+  cardData: PhenomenonCardData;
+}
