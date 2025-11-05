@@ -1,5 +1,6 @@
 import {
   AggregateRoot,
+  Command,
   DomainEvent,
   Identifier,
   RepositoryPort,
@@ -62,4 +63,7 @@ export interface MarkNotificationReadCommand {
   readonly recipientId: UUID;
 }
 
-export type NotificationUseCase<TCommand, TResult> = UseCase<TCommand, TResult>;
+export type NotificationUseCase<
+  TCommand extends Command,
+  TResult,
+> = UseCase<TCommand, TResult>;

@@ -1,5 +1,6 @@
 import {
   AggregateRoot,
+  Command,
   DomainEvent,
   Identifier,
   RepositoryPort,
@@ -110,4 +111,7 @@ export interface VerifyBlockSourceCommand {
   readonly notes?: string;
 }
 
-export type BlockUseCase<TCommand, TResult> = UseCase<TCommand, TResult>;
+export type BlockUseCase<
+  TCommand extends Command,
+  TResult,
+> = UseCase<TCommand, TResult>;

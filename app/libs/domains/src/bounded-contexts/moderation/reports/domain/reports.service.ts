@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  REPORT_REPOSITORY,
+import type {
+  ReportRepository,
   AssignReportCommand,
   FileReportCommand,
   RejectReportCommand,
   ReportAggregate,
-  ReportRepository,
   ResolveReportCommand,
 } from './reports.domain.entity';
+import { REPORT_REPOSITORY } from './reports.domain.entity';
 
 @Injectable()
 export class ModerationReportsDomainService {

@@ -1,5 +1,6 @@
 import {
   AggregateRoot,
+  Command,
   DomainEvent,
   DomainPolicy,
   Identifier,
@@ -26,8 +27,12 @@ export interface ConceptLabel extends ValueObject<LocalizedText> {
   readonly context?: string;
 }
 
-export interface ConceptRelation extends ValueObject<{ readonly type: ConceptRelationType }>
-  extends LocalizedText {
+export interface ConceptRelation
+  extends ValueObject<{
+    readonly type: ConceptRelationType;
+    readonly language: string;
+    readonly text: string;
+  }> {
   readonly targetId: ConceptId;
   readonly confidence: number;
 }
@@ -130,4 +135,7 @@ export interface UpdateConceptVectorCommand {
   readonly performedBy: UUID;
 }
 
-export type ConceptUseCase<TCommand, TResult> = UseCase<TCommand, TResult>;
+export type ConceptUseCase<
+  TCommand extends Command,
+  TResult,
+> = UseCase<TCommand, TResult>;

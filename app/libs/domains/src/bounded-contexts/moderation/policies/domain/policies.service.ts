@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  MODERATION_POLICY_REGISTRY,
+import type {
+  ModerationPolicyRegistry,
   ArticleFreezeContext,
   BlockSourceContext,
-  ModerationPolicyRegistry,
   UserRestrictionContext,
 } from './policies.domain.entity';
+import { MODERATION_POLICY_REGISTRY } from './policies.domain.entity';
 
 @Injectable()
 export class ModerationPoliciesDomainService {

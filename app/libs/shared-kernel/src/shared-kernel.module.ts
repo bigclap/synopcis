@@ -1,28 +1,8 @@
-import { Global, Module } from '@nestjs/common';
-import { DatabaseConfigService } from './integrations/database/database-config';
-import { LocalGitRepositoryClient } from './integrations/git/git-repository.client';
-import { InMemoryObjectStorageClient } from './integrations/storage/object-storage.client';
-import { MarkdownRenderer } from './rendering/markdown.renderer';
-import { SharedKernelService } from './shared-kernel.service';
+import { Module } from '@nestjs/common';
 import { TaskQueueService } from './queue/task-queue.service';
 
-@Global()
 @Module({
-  providers: [
-    SharedKernelService,
-    TaskQueueService,
-    MarkdownRenderer,
-    LocalGitRepositoryClient,
-    InMemoryObjectStorageClient,
-    DatabaseConfigService,
-  ],
-  exports: [
-    SharedKernelService,
-    TaskQueueService,
-    MarkdownRenderer,
-    LocalGitRepositoryClient,
-    InMemoryObjectStorageClient,
-    DatabaseConfigService,
-  ],
+  providers: [TaskQueueService],
+  exports: [TaskQueueService],
 })
 export class SharedKernelModule {}

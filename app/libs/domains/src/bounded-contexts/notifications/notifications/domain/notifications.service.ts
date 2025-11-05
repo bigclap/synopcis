@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  NOTIFICATION_REPOSITORY,
+import type {
+  NotificationRepository,
   MarkNotificationReadCommand,
   NotificationAggregate,
-  NotificationRepository,
   ScheduleNotificationCommand,
 } from './notifications.domain.entity';
+import { NOTIFICATION_REPOSITORY } from './notifications.domain.entity';
 
 @Injectable()
 export class NotificationsDomainService {

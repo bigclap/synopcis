@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  BLOCK_REPOSITORY,
-  BlockAggregate,
+import type {
   BlockRepository,
+  BlockAggregate,
   CreateBlockCommand,
   AddBlockAlternativeCommand,
   VoteForBlockAlternativeCommand,
   VerifyBlockSourceCommand,
 } from './blocks.domain.entity';
+import { BLOCK_REPOSITORY } from './blocks.domain.entity';
 
 @Injectable()
 export class BlocksDomainService {

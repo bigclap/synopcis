@@ -30,7 +30,7 @@ export interface AggregateRoot<
   readonly changes: readonly TEvent[];
 }
 
-export interface ValueObject<TProps> extends Readonly<TProps> {}
+export type ValueObject<TProps> = Readonly<TProps>;
 
 export interface DomainEvent<TPayload = unknown> {
   readonly name: string;
