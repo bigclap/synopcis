@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   GitAuthor,
   GitCommitInput,
-  LocalGitRepositoryClient,
   slugifyBlockLabel,
+  TaskType,
+  createTaskMessage,
 } from '@synop/shared-kernel';
+import { lastValueFrom } from 'rxjs';
 import { Repository } from 'typeorm';
 import { PhenomenonEntity } from './phenomenon.entity';
 import {
@@ -35,7 +38,7 @@ const MANIFEST_FILE_PATH = 'manifest.json';
 @Injectable()
 export class PhenomenonStorageService {
   constructor(
-    private readonly git: LocalGitRepositoryClient,
+    @Inject('NATS_SERVICE') private readonly natsClient: ClientProxy,
     @InjectRepository(PhenomenonEntity)
     private readonly phenomenonRepository: Repository<PhenomenonEntity>,
   ) {}
@@ -43,7 +46,16 @@ export class PhenomenonStorageService {
   async createPhenomenon(
     input: CreatePhenomenonInput,
   ): Promise<PhenomenonEntity> {
-    await this.git.initializeRepository(input.slug);
+    await lastValueFrom(
+      this.natsClient.send(
+        TaskType.GIT_INIT,
+        createTaskMessage({
+          type: TaskType.GIT_INIT,
+          payload: { repository: input.slug },
+        }),
+      ),
+    );
+
     const phenomenon = await this.findOrCreatePhenomenon(
       input.slug,
       input.userId,
@@ -69,13 +81,21 @@ export class PhenomenonStorageService {
 
     const changes = this.addBlockToManifest(manifest, blockId, titleBlock);
 
-    await this.git.commit({
-      repository: input.slug,
-      author: input.author,
-      summary: 'Initial commit',
-      sourceUrl: 'synop://kernel.synop.one/init',
-      changes,
-    });
+    await lastValueFrom(
+      this.natsClient.send(
+        TaskType.GIT_COMMIT,
+        createTaskMessage({
+          type: TaskType.GIT_COMMIT,
+          payload: {
+            repository: input.slug,
+            author: input.author,
+            summary: 'Initial commit',
+            sourceUrl: 'synop://kernel.synop.one/init',
+            changes,
+          },
+        }),
+      ),
+    );
 
     return phenomenon;
   }
@@ -97,11 +117,19 @@ export class PhenomenonStorageService {
       changes = { ...changes, ...blockChanges };
     }
 
-    return this.git.commit({
-      repository: input.phenomenonSlug,
-      ...input,
-      changes,
-    });
+    return lastValueFrom(
+      this.natsClient.send(
+        TaskType.GIT_COMMIT,
+        createTaskMessage({
+          type: TaskType.GIT_COMMIT,
+          payload: {
+            repository: input.phenomenonSlug,
+            ...input,
+            changes,
+          },
+        }),
+      ),
+    );
   }
 
   private async findOrCreatePhenomenon(
@@ -153,7 +181,15 @@ export class PhenomenonStorageService {
   private async loadManifest(
     repository: string,
   ): Promise<PhenomenonManifest | null> {
-    const content = await this.git.readFile(repository, MANIFEST_FILE_PATH);
+    const content = await lastValueFrom(
+      this.natsClient.send(
+        TaskType.GIT_READ_FILE,
+        createTaskMessage({
+          type: TaskType.GIT_READ_FILE,
+          payload: { repository, filePath: MANIFEST_FILE_PATH },
+        }),
+      ),
+    );
     if (!content) {
       return null;
     }

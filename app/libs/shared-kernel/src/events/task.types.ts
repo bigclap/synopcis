@@ -8,6 +8,10 @@ export enum TaskType {
   GENERATE_AI_DRAFT = 'generate.ai.draft',
   AI_DRAFT = 'ai.draft',
   GET_AI_SUGGESTIONS = 'get.ai.suggestions',
+
+  GIT_INIT = 'git.init',
+  GIT_COMMIT = 'git.commit',
+  GIT_READ_FILE = 'git.read.file',
 }
 
 export type TaskPriority = 'low' | 'normal' | 'high';
