@@ -11,7 +11,13 @@ import {
   PhenomenonDomainService,
   PhenomenonStorageService,
 } from '@synop/domains';
-import { TaskMessage, TaskType } from '@synop/shared-kernel';
+import {
+  GitCommitDto,
+  GitInitDto,
+  GitReadFileDto,
+  TaskMessage,
+  TaskType,
+} from '@synop/shared-kernel';
 import { UpdateFileDto } from './dto/update-file.dto';
 import { WorkerGitService } from './worker-git.service';
 
@@ -19,22 +25,24 @@ import { WorkerGitService } from './worker-git.service';
 export class WorkerGitController {
   constructor(
     private readonly workerGitService: WorkerGitService,
-    private readonly phenomenonStorageService: PhenomenonStorageService,
-    private readonly phenomenonDomainService: PhenomenonDomainService,
+    private readonly gitRepositoryClient: LocalGitRepositoryClient,
   ) {}
 
-  @MessagePattern(TaskType.CREATE_PHENOMENON)
-  async createPhenomenon(message: TaskMessage<{ phenomenonId: string }>) {
-    const { phenomenonId } = message.payload;
-    const phenomenon = await this.phenomenonDomainService.findPhenomenonById(
-      phenomenonId,
-    );
-    if (!phenomenon) {
-      throw new BadRequestException(
-        `Phenomenon with id ${phenomenonId} was not found`,
-      );
-    }
-    await this.phenomenonStorageService.createPhenomenon(phenomenon.slug);
+  @MessagePattern(TaskType.GIT_INIT)
+  async initRepository(message: TaskMessage<GitInitDto>) {
+    const { repository } = message.payload;
+    return this.gitRepositoryClient.initializeRepository(repository);
+  }
+
+  @MessagePattern(TaskType.GIT_COMMIT)
+  async commit(message: TaskMessage<GitCommitDto>) {
+    return this.gitRepositoryClient.commit(message.payload);
+  }
+
+  @MessagePattern(TaskType.GIT_READ_FILE)
+  async readFile(message: TaskMessage<GitReadFileDto>) {
+    const { repository, filePath } = message.payload;
+    return this.gitRepositoryClient.readFile(repository, filePath);
   }
 
   @Get('health')

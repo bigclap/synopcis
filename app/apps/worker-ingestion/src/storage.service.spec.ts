@@ -1,7 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StorageService } from './storage.service';
-import { ArticlesDomainService } from '@synop/domains';
-import { PhenomenonStorageService } from '../../../libs/domains/src/phenomenon/phenomenon-storage.service';
+import {
+  ArticlesDomainService,
+  PhenomenonStorageService,
+} from '@synop/domains';
 import { LocalGitRepositoryClient } from '@synop/shared-kernel';
 
 describe('StorageService', () => {
@@ -35,8 +37,12 @@ describe('StorageService', () => {
     }).compile();
 
     service = module.get<StorageService>(StorageService);
-    articlesDomainService = module.get<ArticlesDomainService>(ArticlesDomainService);
-    gitRepositoryClient = module.get<LocalGitRepositoryClient>(LocalGitRepositoryClient);
+    articlesDomainService = module.get<ArticlesDomainService>(
+      ArticlesDomainService,
+    );
+    gitRepositoryClient = module.get<LocalGitRepositoryClient>(
+      LocalGitRepositoryClient,
+    );
   });
 
   it('should store an article', async () => {

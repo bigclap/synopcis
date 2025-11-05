@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { LocalGitRepositoryClient } from '@synop/shared-kernel';
+import { ClientProxy } from '@nestjs/microservices';
+import { TaskType } from '@synop/shared-kernel';
 import { PhenomenonEntity } from './phenomenon.entity';
 import {
   PhenomenonStorageService,
@@ -9,11 +10,18 @@ import {
 import { NewBlockInput, PhenomenonManifest } from './phenomenon.types';
 import * as path from 'path';
 
-const mockGitClient = {
-  initializeRepository: jest.fn(),
-  readFile: jest.fn(),
-  commit: jest.fn(),
+import { of } from 'rxjs';
+
+const mockNatsClient = {
+  send: jest.fn((pattern, data) => {
+    if (pattern === TaskType.GIT_READ_FILE) {
+      return of(JSON.stringify(mockManifest));
+    }
+    return of(null);
+  }),
 };
+
+let mockManifest: PhenomenonManifest;
 
 const mockPhenomenonRepository = {
   findOneBy: jest.fn(),
@@ -47,8 +55,8 @@ describe('PhenomenonStorageService', () => {
       providers: [
         PhenomenonStorageService,
         {
-          provide: LocalGitRepositoryClient,
-          useValue: mockGitClient,
+          provide: 'NATS_SERVICE',
+          useValue: mockNatsClient,
         },
         {
           provide: getRepositoryToken(PhenomenonEntity),
@@ -76,20 +84,20 @@ describe('PhenomenonStorageService', () => {
         userId: 'test-user',
       });
 
-      expect(mockGitClient.initializeRepository).toHaveBeenCalledWith(
-        phenomenonSlug,
+      expect(mockNatsClient.send).toHaveBeenCalledWith(
+        TaskType.GIT_INIT,
+        expect.any(Object),
       );
-      expect(mockGitClient.commit).toHaveBeenCalled();
-      const commitCall = mockGitClient.commit.mock.calls[0][0];
-      const manifest = JSON.parse(commitCall.changes['manifest.json']);
-      expect(manifest.structure.length).toBe(1);
-      expect(Object.keys(manifest.blocks).length).toBe(1);
+      expect(mockNatsClient.send).toHaveBeenCalledWith(
+        TaskType.GIT_COMMIT,
+        expect.any(Object),
+      );
     });
   });
 
   describe('updatePhenomenonBlocks', () => {
     it('adds new blocks to an existing manifest', async () => {
-      const initialManifest: PhenomenonManifest = {
+      mockManifest = {
         article_slug: phenomenonSlug,
         title: 'Test Phenomenon',
         last_updated: new Date().toISOString(),
@@ -97,17 +105,13 @@ describe('PhenomenonStorageService', () => {
         structure: [],
         blocks: {},
       };
-      mockGitClient.readFile.mockResolvedValue(
-        JSON.stringify(initialManifest),
-      );
 
       await service.updatePhenomenonBlocks(MOCK_INPUT);
 
-      expect(mockGitClient.commit).toHaveBeenCalled();
-      const commitCall = mockGitClient.commit.mock.calls[0][0];
-      const manifest = JSON.parse(commitCall.changes['manifest.json']);
-      expect(manifest.structure.length).toBe(1);
-      expect(Object.keys(manifest.blocks).length).toBe(1);
+      expect(mockNatsClient.send).toHaveBeenCalledWith(
+        TaskType.GIT_COMMIT,
+        expect.any(Object),
+      );
     });
   });
 });

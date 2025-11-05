@@ -4,15 +4,22 @@ import { PhenomenonEntity } from './phenomenon.entity';
 import { PhenomenonDomainService } from './phenomenon.domain.service';
 import { PhenomenonBlockEntity } from './phenomenon-block.entity';
 import { PhenomenonStorageService } from './phenomenon-storage.service';
-import { LocalGitRepositoryClient } from '@synop/shared-kernel';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PhenomenonEntity, PhenomenonBlockEntity])],
-  providers: [
-    PhenomenonDomainService,
-    PhenomenonStorageService,
-    LocalGitRepositoryClient,
+  imports: [
+    TypeOrmModule.forFeature([PhenomenonEntity, PhenomenonBlockEntity]),
+    ClientsModule.register([
+      {
+        name: 'NATS_SERVICE',
+        transport: Transport.NATS,
+        options: {
+          servers: [process.env.NATS_URL || 'nats://localhost:4222'],
+        },
+      },
+    ]),
   ],
+  providers: [PhenomenonDomainService, PhenomenonStorageService],
   exports: [PhenomenonDomainService, PhenomenonStorageService],
 })
 export class PhenomenonModule {}

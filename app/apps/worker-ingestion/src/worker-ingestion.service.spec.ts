@@ -1,14 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Article } from '@synop/domains/bounded-contexts/knowledge/articles/domain/article.entity';
+import {
+  ArticlesDomainService,
+  PhenomenonStorageService,
+} from '@synop/domains';
+import { Article } from '../../../libs/domains/src/bounded-contexts/knowledge/articles/domain/article.entity';
 import { WorkerIngestionService } from './worker-ingestion.service';
 import { WikipediaService } from './wikipedia.service';
 import { LlmService } from './llm.service';
 import { StorageService } from './storage.service';
-import { ArticlesDomainService } from '@synop/domains/bounded-contexts/knowledge/articles/domain/articles.service';
 import { TaskType, createTaskMessage } from '@synop/shared-kernel';
 import { LocalGitRepositoryClient } from '@synop/shared-kernel';
-import { PhenomenonStorageService } from '../../../libs/domains/src/phenomenon/phenomenon-storage.service';
 
 describe('WorkerIngestionService', () => {
   let service: WorkerIngestionService;
@@ -22,7 +24,7 @@ describe('WorkerIngestionService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkerIngestionService,
-        StorageService,
+        { provide: StorageService, useValue: { storeArticle: jest.fn() } },
         { provide: ArticlesDomainService, useValue: { create: jest.fn() } },
         { provide: WikipediaService, useValue: { getArticle: jest.fn() } },
         { provide: LlmService, useValue: { synthesize: jest.fn(), translate: jest.fn() } },
@@ -47,8 +49,12 @@ describe('WorkerIngestionService', () => {
     wikipediaService = module.get<WikipediaService>(WikipediaService);
     llmService = module.get<LlmService>(LlmService);
     storageService = module.get<StorageService>(StorageService);
-    articlesDomainService = module.get<ArticlesDomainService>(ArticlesDomainService);
-    gitRepositoryClient = module.get<LocalGitRepositoryClient>(LocalGitRepositoryClient);
+    articlesDomainService = module.get<ArticlesDomainService>(
+      ArticlesDomainService,
+    );
+    gitRepositoryClient = module.get<LocalGitRepositoryClient>(
+      LocalGitRepositoryClient,
+    );
   });
 
   it('should process an ingestion task', async () => {
@@ -66,6 +72,11 @@ describe('WorkerIngestionService', () => {
     (llmService.translate as jest.Mock).mockImplementation((content, lang) =>
       Promise.resolve(`translated to ${lang}`),
     );
+
+    (articlesDomainService.create as jest.Mock).mockResolvedValue({
+      id: 1,
+      git_repo_name: 'test-article',
+    });
 
     await service.ingestWikipedia(task);
 
