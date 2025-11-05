@@ -28,16 +28,20 @@ export interface ConsumeOptions {
 @Injectable()
 export class TaskQueueService implements OnModuleDestroy {
   private readonly logger = new Logger(TaskQueueService.name);
-  private readonly stream$ = new Subject<TaskMessage>();
+  private readonly stream$ = new Subject<TaskMessage<Record<string, unknown>>>();
   private readonly errors$ = new Subject<TaskProcessingError>();
   private readonly subscriptions = new Set<Subscription>();
 
-  publish<TPayload>(task: TaskMessage<TPayload>): void {
+  publish<TPayload extends Record<string, unknown>>(
+    task: TaskMessage<TPayload>,
+  ): void {
     this.logger.debug(`Publishing task ${task.type} (${task.id})`);
     this.stream$.next(task);
   }
 
-  onTask<TPayload>(type: TaskType): Observable<TaskMessage<TPayload>> {
+  onTask<TPayload extends Record<string, unknown>>(
+    type: TaskType,
+  ): Observable<TaskMessage<TPayload>> {
     return this.stream$.pipe(filter((task) => task.type === type)) as Observable<
       TaskMessage<TPayload>
     >;

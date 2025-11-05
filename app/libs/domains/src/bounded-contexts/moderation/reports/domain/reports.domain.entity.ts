@@ -1,5 +1,6 @@
 import {
   AggregateRoot,
+  Command,
   DomainEvent,
   Identifier,
   RepositoryPort,
@@ -80,4 +81,7 @@ export interface RejectReportCommand {
   readonly reason: string;
 }
 
-export type ReportUseCase<TCommand, TResult> = UseCase<TCommand, TResult>;
+export type ReportUseCase<
+  TCommand extends Command,
+  TResult,
+> = UseCase<TCommand, TResult>;

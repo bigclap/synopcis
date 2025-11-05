@@ -1,4 +1,5 @@
 import {
+  Command,
   DomainEvent,
   PaginatedResult,
   Query,
@@ -44,15 +45,15 @@ export interface FeedTimelineRepository
 
 export const FEED_TIMELINE_REPOSITORY = Symbol('FEED_TIMELINE_REPOSITORY');
 
-export interface BuildFeedCommand {
+export interface BuildFeedCommand extends Command<{
   readonly recipientId: UUID;
   readonly since?: Date;
-}
+}> {}
 
-export interface MarkFeedEntryReadCommand {
+export interface MarkFeedEntryReadCommand extends Command<{
   readonly entryId: FeedEventId;
   readonly recipientId: UUID;
-}
+}> {}
 
 export interface FeedUseCases {
   readonly buildPersonalFeed: UseCase<BuildFeedCommand, PaginatedResult<FeedTimelineEntry>>;

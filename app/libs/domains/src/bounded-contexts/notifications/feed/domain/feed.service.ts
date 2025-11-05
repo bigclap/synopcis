@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  FEED_TIMELINE_REPOSITORY,
+import type {
+  FeedTimelineRepository,
   BuildFeedCommand,
   FeedTimelineEntry,
-  FeedTimelineRepository,
   MarkFeedEntryReadCommand,
 } from './feed.domain.entity';
+import { FEED_TIMELINE_REPOSITORY } from './feed.domain.entity';
 
 @Injectable()
 export class FeedDomainService {
