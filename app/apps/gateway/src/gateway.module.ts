@@ -6,10 +6,12 @@ import { PhenomenonController } from './phenomenon.controller';
 import { PhenomenonService } from './phenomenon.service';
 import { AchievementsController } from './achievements.controller';
 import { SharedKernelModule } from '@synop/shared-kernel';
+import { AchievementsModule } from '@synop/domains';
 
 @Module({
   imports: [
     SharedKernelModule,
+    AchievementsModule,
     ClientsModule.register([
       {
         name: 'NATS_SERVICE',
