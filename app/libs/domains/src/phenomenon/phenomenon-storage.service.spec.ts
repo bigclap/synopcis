@@ -1,32 +1,31 @@
 import { Test } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { ClientProxy } from '@nestjs/microservices';
 import { TaskType } from '@synop/shared-kernel';
-import { PhenomenonEntity } from './phenomenon.entity';
 import {
   PhenomenonStorageService,
   UpdatePhenomenonBlocksInput,
 } from './phenomenon-storage.service';
 import { NewBlockInput, PhenomenonManifest } from './phenomenon.types';
-import * as path from 'path';
-
+import { PhenomenonDomainService } from './phenomenon.domain.service';
+import { Manifest } from './manifest';
 import { of } from 'rxjs';
 
 const mockNatsClient = {
   send: jest.fn((pattern, data) => {
     if (pattern === TaskType.GIT_READ_FILE) {
-      return of(JSON.stringify(mockManifest));
+      const manifest = Manifest.createNew(
+        'test-phenomenon',
+        'Test Phenomenon',
+        'en',
+      );
+      return of(manifest.toString());
     }
     return of(null);
   }),
 };
 
-let mockManifest: PhenomenonManifest;
-
-const mockPhenomenonRepository = {
-  findOneBy: jest.fn(),
-  create: jest.fn(),
-  save: jest.fn(),
+const mockPhenomenonDomainService = {
+  createPhenomenon: jest.fn(),
 };
 
 describe('PhenomenonStorageService', () => {
@@ -59,8 +58,8 @@ describe('PhenomenonStorageService', () => {
           useValue: mockNatsClient,
         },
         {
-          provide: getRepositoryToken(PhenomenonEntity),
-          useValue: mockPhenomenonRepository,
+          provide: PhenomenonDomainService,
+          useValue: mockPhenomenonDomainService,
         },
       ],
     }).compile();
@@ -71,8 +70,7 @@ describe('PhenomenonStorageService', () => {
 
   describe('createPhenomenon', () => {
     it('initializes a repository and creates an initial manifest', async () => {
-      mockPhenomenonRepository.findOneBy.mockResolvedValue(null);
-      mockPhenomenonRepository.create.mockReturnValue({
+      mockPhenomenonDomainService.createPhenomenon.mockResolvedValue({
         slug: phenomenonSlug,
         userId: 'test-user',
       });
@@ -92,20 +90,17 @@ describe('PhenomenonStorageService', () => {
         TaskType.GIT_COMMIT,
         expect.any(Object),
       );
+      expect(
+        mockPhenomenonDomainService.createPhenomenon,
+      ).toHaveBeenCalledWith({
+        title: phenomenonSlug,
+        userId: 'test-user',
+      });
     });
   });
 
   describe('updatePhenomenonBlocks', () => {
     it('adds new blocks to an existing manifest', async () => {
-      mockManifest = {
-        article_slug: phenomenonSlug,
-        title: 'Test Phenomenon',
-        last_updated: new Date().toISOString(),
-        default_lang: 'en',
-        structure: [],
-        blocks: {},
-      };
-
       await service.updatePhenomenonBlocks(MOCK_INPUT);
 
       expect(mockNatsClient.send).toHaveBeenCalledWith(

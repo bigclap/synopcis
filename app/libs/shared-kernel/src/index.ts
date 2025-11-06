@@ -1,4 +1,5 @@
 export * from './events';
+export * from './utils';
 export * from './queue/task-queue.service';
 export * from './rendering/markdown.renderer';
 export * from './integrations/git/git-repository.client';
