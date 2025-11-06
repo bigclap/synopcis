@@ -12,6 +12,7 @@ import { GatewayService } from './gateway.service';
 import { CreateAiDraftTaskDto } from './dto/create-ai-draft-task.dto';
 import { GetAiSuggestionsDto } from './dto/get-ai-suggestions.dto';
 import { PhenomenonDto } from './dto/phenomenon.dto';
+import { AuthService } from './auth.service';
 
 @ApiTags('phenomena')
 @Controller('phenomena')
@@ -20,6 +21,7 @@ export class PhenomenonController {
     private readonly phenomenonStorage: PhenomenonStorageService,
     private readonly gateway: GatewayService,
     private readonly phenomenonService: PhenomenonService,
+    private readonly authService: AuthService,
   ) {}
 
   @Post()
@@ -32,9 +34,9 @@ export class PhenomenonController {
     @Body() body: CreatePhenomenonDto,
     @Req() request: Request,
   ) {
+    const userId = this.authService.getUserIdFromRequest(request);
     const slug = this.slugify(body.title);
-    const author = { name: 'hardcoded-user', email: 'hardcoded-user@synop.one' }; // TODO: get from session
-    const userId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'; // TODO: get from session
+    const author = { name: 'hardcoded-user', email: 'hardcoded-user@synop.one' };
 
     const input: CreatePhenomenonInput = {
       slug,
@@ -61,8 +63,9 @@ export class PhenomenonController {
   async createAiDraft(
     @Param('slug') slug: string,
     @Body() body: CreateAiDraftTaskDto,
+    @Req() request: Request,
   ) {
-    const userId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'; // TODO: get from session
+    const userId = this.authService.getUserIdFromRequest(request);
     return this.gateway.scheduleAiDraft({
       ...body,
       phenomenonSlug: slug,
@@ -75,8 +78,9 @@ export class PhenomenonController {
   async getAiSuggestions(
     @Param('slug') slug: string,
     @Body() body: GetAiSuggestionsDto,
+    @Req() request: Request,
   ) {
-    const userId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'; // TODO: get from session
+    const userId = this.authService.getUserIdFromRequest(request);
     return this.gateway.scheduleAiSuggestions({
       ...body,
       phenomenonSlug: slug,

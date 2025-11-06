@@ -6,12 +6,14 @@ import { PhenomenonController } from './phenomenon.controller';
 import { PhenomenonService } from './phenomenon.service';
 import { AchievementsController } from './achievements.controller';
 import { SharedKernelModule } from '@synop/shared-kernel';
-import { AchievementsModule } from '@synop/domains';
+import { AchievementsModule, PhenomenonModule } from '@synop/domains';
+import { AuthService } from './auth.service';
 
 @Module({
   imports: [
     SharedKernelModule,
     AchievementsModule,
+    PhenomenonModule,
     ClientsModule.register([
       {
         name: 'NATS_SERVICE',
@@ -23,6 +25,6 @@ import { AchievementsModule } from '@synop/domains';
     ]),
   ],
   controllers: [GatewayController, PhenomenonController, AchievementsController],
-  providers: [GatewayService, PhenomenonService],
+  providers: [GatewayService, PhenomenonService, AuthService],
 })
 export class GatewayModule {}

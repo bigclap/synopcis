@@ -30,4 +30,8 @@ export class PhenomenonDomainService {
   async findPhenomenonById(id: string): Promise<PhenomenonEntity | null> {
     return this.phenomenonRepository.findOneBy({ id });
   }
+
+  async findPhenomenonBySlug(slug: string): Promise<PhenomenonEntity | null> {
+    return this.phenomenonRepository.findOneBy({ slug });
+  }
 }
