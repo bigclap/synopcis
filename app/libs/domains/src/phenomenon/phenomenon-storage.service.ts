@@ -178,7 +178,7 @@ export class PhenomenonStorageService {
     return changes;
   }
 
-  private async loadManifest(
+  async loadManifest(
     repository: string,
   ): Promise<PhenomenonManifest | null> {
     const content = await lastValueFrom(
@@ -198,5 +198,35 @@ export class PhenomenonStorageService {
     } catch {
       return null;
     }
+  }
+
+  async getBlockContents(
+    repository: string,
+    manifest: PhenomenonManifest,
+  ): Promise<Record<string, string>> {
+    const blockContents: Record<string, string> = {};
+
+    for (const blockId in manifest.blocks) {
+      if (manifest.blocks.hasOwnProperty(blockId)) {
+        const block = manifest.blocks[blockId];
+        if (block.alternatives && block.alternatives.length > 0) {
+          // For now, just read the first alternative.
+          // TODO: Implement logic to select the best alternative.
+          const alternative = block.alternatives[0];
+          const content = await lastValueFrom(
+            this.natsClient.send(
+              TaskType.GIT_READ_FILE,
+              createTaskMessage({
+                type: TaskType.GIT_READ_FILE,
+                payload: { repository, filePath: alternative.file },
+              }),
+            ),
+          );
+          blockContents[blockId] = content || '';
+        }
+      }
+    }
+
+    return blockContents;
   }
 }
