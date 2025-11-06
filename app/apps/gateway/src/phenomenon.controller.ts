@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import {
   ApiOkResponse,
   ApiOperation,
@@ -12,7 +12,8 @@ import { GatewayService } from './gateway.service';
 import { CreateAiDraftTaskDto } from './dto/create-ai-draft-task.dto';
 import { GetAiSuggestionsDto } from './dto/get-ai-suggestions.dto';
 import { PhenomenonDto } from './dto/phenomenon.dto';
-import { AuthService } from './auth.service';
+import { AuthService } from './auth/auth.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @ApiTags('phenomena')
 @Controller('phenomena')
@@ -25,6 +26,7 @@ export class PhenomenonController {
   ) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new phenomenon' })
   @ApiCreatedResponse({
     description: 'The newly created phenomenon.',
@@ -32,17 +34,17 @@ export class PhenomenonController {
   })
   async createPhenomenon(
     @Body() body: CreatePhenomenonDto,
-    @Req() request: Request,
+    @Req() request: any,
   ) {
-    const userId = this.authService.getUserIdFromRequest(request);
+    const user = request.user;
     const slug = this.slugify(body.title);
-    const author = { name: 'hardcoded-user', email: 'hardcoded-user@synop.one' };
+    const author = { name: user.nickname, email: user.email };
 
     const input: CreatePhenomenonInput = {
       slug,
       title: body.title,
       author,
-      userId,
+      userId: user.id,
     };
 
     return this.phenomenonStorage.createPhenomenon(input);
@@ -59,32 +61,34 @@ export class PhenomenonController {
   }
 
   @Post(':slug/ai-draft')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create an AI draft for a phenomenon' })
   async createAiDraft(
     @Param('slug') slug: string,
     @Body() body: CreateAiDraftTaskDto,
-    @Req() request: Request,
+    @Req() request: any,
   ) {
-    const userId = this.authService.getUserIdFromRequest(request);
+    const user = request.user;
     return this.gateway.scheduleAiDraft({
       ...body,
       phenomenonSlug: slug,
-      userId,
+      userId: user.id,
     });
   }
 
   @Post(':slug/suggestions')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get AI suggestions for a phenomenon' })
   async getAiSuggestions(
     @Param('slug') slug: string,
     @Body() body: GetAiSuggestionsDto,
-    @Req() request: Request,
+    @Req() request: any,
   ) {
-    const userId = this.authService.getUserIdFromRequest(request);
+    const user = request.user;
     return this.gateway.scheduleAiSuggestions({
       ...body,
       phenomenonSlug: slug,
-      userId,
+      userId: user.id,
     });
   }
 
