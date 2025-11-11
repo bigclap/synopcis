@@ -1,24 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { InjectRepository } from '@nestjs/typeorm';
 import {
   GitAuthor,
   GitCommitInput,
-  slugifyBlockLabel,
   TaskType,
   createTaskMessage,
 } from '@synop/shared-kernel';
 import { lastValueFrom } from 'rxjs';
-import { Repository } from 'typeorm';
+import { PhenomenonDomainService } from './phenomenon.domain.service';
 import { PhenomenonEntity } from './phenomenon.entity';
-import {
-  NewBlockInput,
-  PhenomenonManifest,
-  BlockAlternative,
-  BlockCatalogEntry,
-} from './phenomenon.types';
-import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { NewBlockInput } from './phenomenon.types';
+import { Manifest } from './manifest';
 
 export interface UpdatePhenomenonBlocksInput
   extends Omit<GitCommitInput, 'changes' | 'repository'> {
@@ -39,8 +31,7 @@ const MANIFEST_FILE_PATH = 'manifest.json';
 export class PhenomenonStorageService {
   constructor(
     @Inject('NATS_SERVICE') private readonly natsClient: ClientProxy,
-    @InjectRepository(PhenomenonEntity)
-    private readonly phenomenonRepository: Repository<PhenomenonEntity>,
+    private readonly phenomenonDomainService: PhenomenonDomainService,
   ) {}
 
   async createPhenomenon(
@@ -56,12 +47,12 @@ export class PhenomenonStorageService {
       ),
     );
 
-    const phenomenon = await this.findOrCreatePhenomenon(
-      input.slug,
-      input.userId,
-    );
+    const phenomenon = await this.phenomenonDomainService.createPhenomenon({
+      title: input.slug,
+      userId: input.userId,
+    });
 
-    const blockId = `b${uuidv4().slice(0, 3)}`;
+    const manifest = Manifest.createNew(input.slug, input.title, 'en');
     const titleBlock: NewBlockInput = {
       type: 'heading',
       lang: 'en',
@@ -70,16 +61,9 @@ export class PhenomenonStorageService {
       title: input.title,
     };
 
-    const manifest: PhenomenonManifest = {
-      article_slug: input.slug,
-      title: input.title,
-      last_updated: new Date().toISOString(),
-      default_lang: 'en',
-      structure: [{ block_id: blockId, level: 1 }],
-      blocks: {},
-    };
-
-    const changes = this.addBlockToManifest(manifest, blockId, titleBlock);
+    const changes: Record<string, string> = {};
+    manifest.addBlock(titleBlock, changes);
+    changes[MANIFEST_FILE_PATH] = manifest.toString();
 
     await lastValueFrom(
       this.natsClient.send(
@@ -108,14 +92,12 @@ export class PhenomenonStorageService {
       );
     }
 
-    let changes: Record<string, string> = {};
+    const changes: Record<string, string> = {};
 
     for (const block of input.blocks) {
-      const blockId = `b${uuidv4().slice(0, 3)}`;
-      manifest.structure.push({ block_id: blockId, level: block.level });
-      const blockChanges = this.addBlockToManifest(manifest, blockId, block);
-      changes = { ...changes, ...blockChanges };
+      manifest.addBlock(block, changes);
     }
+    changes[MANIFEST_FILE_PATH] = manifest.toString();
 
     return lastValueFrom(
       this.natsClient.send(
@@ -132,55 +114,7 @@ export class PhenomenonStorageService {
     );
   }
 
-  private async findOrCreatePhenomenon(
-    slug: string,
-    userId: string,
-  ): Promise<PhenomenonEntity> {
-    let phenomenon = await this.phenomenonRepository.findOneBy({ slug });
-    if (!phenomenon) {
-      phenomenon = this.phenomenonRepository.create({ slug, userId });
-      await this.phenomenonRepository.save(phenomenon);
-    }
-    return phenomenon;
-  }
-
-  private addBlockToManifest(
-    manifest: PhenomenonManifest,
-    blockId: string,
-    block: NewBlockInput,
-  ): Record<string, string> {
-    const safeTitle = slugifyBlockLabel(block.title || block.type);
-    const fileName = `${block.lang}/${blockId}-${safeTitle}.md`;
-    const filePath = path.posix.join(fileName);
-
-    const alternative: BlockAlternative = {
-      file: filePath,
-      lang: block.lang,
-      votes: 0,
-      concepts: block.concepts || [],
-      source: block.source || null,
-      trust_score: 0,
-    };
-
-    const catalogEntry: BlockCatalogEntry = {
-      type: block.type,
-      alternatives: [alternative],
-    };
-
-    manifest.blocks[blockId] = catalogEntry;
-    manifest.last_updated = new Date().toISOString();
-
-    const changes = {
-      [filePath]: block.content,
-      [MANIFEST_FILE_PATH]: JSON.stringify(manifest, null, 2),
-    };
-
-    return changes;
-  }
-
-  async loadManifest(
-    repository: string,
-  ): Promise<PhenomenonManifest | null> {
+  async loadManifest(repository: string): Promise<Manifest | null> {
     const content = await lastValueFrom(
       this.natsClient.send(
         TaskType.GIT_READ_FILE,
@@ -194,7 +128,7 @@ export class PhenomenonStorageService {
       return null;
     }
     try {
-      return JSON.parse(content);
+      return Manifest.fromString(content);
     } catch {
       return null;
     }
@@ -202,13 +136,14 @@ export class PhenomenonStorageService {
 
   async getBlockContents(
     repository: string,
-    manifest: PhenomenonManifest,
+    manifest: Manifest,
   ): Promise<Record<string, string>> {
     const blockContents: Record<string, string> = {};
+    const manifestData = manifest.data;
 
-    for (const blockId in manifest.blocks) {
-      if (manifest.blocks.hasOwnProperty(blockId)) {
-        const block = manifest.blocks[blockId];
+    for (const blockId in manifestData.blocks) {
+      if (manifestData.blocks.hasOwnProperty(blockId)) {
+        const block = manifestData.blocks[blockId];
         if (block.alternatives && block.alternatives.length > 0) {
           // For now, just read the first alternative.
           // TODO: Implement logic to select the best alternative.

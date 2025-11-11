@@ -110,7 +110,6 @@
       "^@synop/domains(|/.*)$": "<rootDir>/libs/domains/src/$1",
       "^@synop/shared-kernel(|/.*)$": "<rootDir>/libs/shared-kernel/src/$1"
     },
-    "resolver": "ts-jest-resolver",
     "transformIgnorePatterns": [
       "node_modules/(?!uuid)"
     ]

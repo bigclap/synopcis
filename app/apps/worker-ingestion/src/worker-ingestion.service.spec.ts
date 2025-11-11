@@ -1,45 +1,40 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import {
   ArticlesDomainService,
   PhenomenonStorageService,
+  Article,
 } from '@synop/domains';
-import { Article } from '../../../libs/domains/src/bounded-contexts/knowledge/articles/domain/article.entity';
 import { WorkerIngestionService } from './worker-ingestion.service';
-import { WikipediaService } from './wikipedia.service';
-import { LlmService } from './llm.service';
-import { StorageService } from './storage.service';
+import { WikipediaService } from './wikipedia/wikipedia.service';
+import { StorageService } from './storage/storage.service';
 import { TaskType, createTaskMessage } from '@synop/shared-kernel';
-import { LocalGitRepositoryClient } from '@synop/shared-kernel';
+import { ClientProxy } from '@nestjs/microservices';
+import { of } from 'rxjs';
 
 describe('WorkerIngestionService', () => {
   let service: WorkerIngestionService;
   let wikipediaService: WikipediaService;
-  let llmService: LlmService;
   let storageService: StorageService;
-  let articlesDomainService: ArticlesDomainService;
-  let gitRepositoryClient: LocalGitRepositoryClient;
+  let natsClient: ClientProxy;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkerIngestionService,
         { provide: StorageService, useValue: { storeArticle: jest.fn() } },
-        { provide: ArticlesDomainService, useValue: { create: jest.fn() } },
         { provide: WikipediaService, useValue: { getArticle: jest.fn() } },
-        { provide: LlmService, useValue: { synthesize: jest.fn(), translate: jest.fn() } },
-        { provide: LocalGitRepositoryClient, useValue: { commitArticle: jest.fn() } },
         {
-          provide: getRepositoryToken(Article),
+          provide: 'NATS_SERVICE',
           useValue: {
-            create: jest.fn().mockImplementation((dto) => ({ ...dto, git_repo_name: dto.slug })),
-            save: jest.fn().mockResolvedValue(undefined),
-          },
-        },
-        {
-          provide: PhenomenonStorageService,
-          useValue: {
-            updatePhenomenonBlocks: jest.fn(),
+            send: jest.fn((pattern, data) => {
+              if (pattern === TaskType.AI_SYNTHESIZE) {
+                return of('synthesized content');
+              }
+              if (pattern === TaskType.AI_TRANSLATE) {
+                return of(`translated to ${data.payload.lang}`);
+              }
+              return of(null);
+            }),
           },
         },
       ],
@@ -47,14 +42,8 @@ describe('WorkerIngestionService', () => {
 
     service = module.get<WorkerIngestionService>(WorkerIngestionService);
     wikipediaService = module.get<WikipediaService>(WikipediaService);
-    llmService = module.get<LlmService>(LlmService);
     storageService = module.get<StorageService>(StorageService);
-    articlesDomainService = module.get<ArticlesDomainService>(
-      ArticlesDomainService,
-    );
-    gitRepositoryClient = module.get<LocalGitRepositoryClient>(
-      LocalGitRepositoryClient,
-    );
+    natsClient = module.get<ClientProxy>('NATS_SERVICE');
   });
 
   it('should process an ingestion task', async () => {
@@ -68,21 +57,18 @@ describe('WorkerIngestionService', () => {
     (wikipediaService.getArticle as jest.Mock).mockImplementation((name, lang) =>
       Promise.resolve({ content: `content in ${lang}` }),
     );
-    (llmService.synthesize as jest.Mock).mockResolvedValue('synthesized content');
-    (llmService.translate as jest.Mock).mockImplementation((content, lang) =>
-      Promise.resolve(`translated to ${lang}`),
-    );
-
-    (articlesDomainService.create as jest.Mock).mockResolvedValue({
-      id: 1,
-      git_repo_name: 'test-article',
-    });
 
     await service.ingestWikipedia(task);
 
     expect(wikipediaService.getArticle).toHaveBeenCalledWith(articleName, 'en');
-    expect(llmService.synthesize).toHaveBeenCalled();
-    expect(llmService.translate).toHaveBeenCalled();
+    expect(natsClient.send).toHaveBeenCalledWith(
+      TaskType.AI_SYNTHESIZE,
+      expect.any(Object),
+    );
+    expect(natsClient.send).toHaveBeenCalledWith(
+      TaskType.AI_TRANSLATE,
+      expect.any(Object),
+    );
     expect(storageService.storeArticle).toHaveBeenCalled();
   });
 });

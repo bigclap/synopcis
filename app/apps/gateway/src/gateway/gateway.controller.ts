@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, UsePipes, ValidationPipe } from '@nestjs/common';
-import { CreateAiAnalysisTaskDto } from './dto/create-ai-analysis.dto';
-import { CreateRenderTaskDto } from './dto/create-render-task.dto';
-import { CreateIngestionTaskDto } from './dto/create-ingestion-task.dto';
+import { CreateAiAnalysisTaskDto } from '../dto/create-ai-analysis.dto';
+import { CreateRenderTaskDto } from '../dto/create-render-task.dto';
+import { CreateIngestionTaskDto } from '../dto/create-ingestion-task.dto';
 import { GatewayService } from './gateway.service';
 
 @Controller('tasks')

@@ -4,16 +4,17 @@ import {
   ApiOperation,
   ApiTags,
   ApiCreatedResponse,
+  ApiBody,
 } from '@nestjs/swagger';
-import { CreatePhenomenonDto } from './dto/create-phenomenon.dto';
+import { CreatePhenomenonDto } from '../dto/create-phenomenon.dto';
 import { PhenomenonService } from './phenomenon.service';
 import { CreatePhenomenonInput, PhenomenonStorageService } from '@synop/domains';
-import { GatewayService } from './gateway.service';
-import { CreateAiDraftTaskDto } from './dto/create-ai-draft-task.dto';
-import { GetAiSuggestionsDto } from './dto/get-ai-suggestions.dto';
-import { PhenomenonDto } from './dto/phenomenon.dto';
-import { AuthService } from './auth/auth.service';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { slugify } from '@synop/shared-kernel';
+import { GatewayService } from '../gateway/gateway.service';
+import { CreateAiDraftTaskDto } from '../dto/create-ai-draft-task.dto';
+import { GetAiSuggestionsDto } from '../dto/get-ai-suggestions.dto';
+import { PhenomenonDto } from '../dto/phenomenon.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('phenomena')
 @Controller('phenomena')
@@ -22,7 +23,6 @@ export class PhenomenonController {
     private readonly phenomenonStorage: PhenomenonStorageService,
     private readonly gateway: GatewayService,
     private readonly phenomenonService: PhenomenonService,
-    private readonly authService: AuthService,
   ) {}
 
   @Post()
@@ -36,14 +36,16 @@ export class PhenomenonController {
     @Body() body: CreatePhenomenonDto,
     @Req() request: any,
   ) {
-    const user = request.user;
-    const slug = this.slugify(body.title);
-    const author = { name: user.nickname, email: user.email };
+    const slug = slugify(body.title);
+    const { user } = request;
 
     const input: CreatePhenomenonInput = {
       slug,
       title: body.title,
-      author,
+      author: {
+        name: user.nickname,
+        email: user.email,
+      },
       userId: user.id,
     };
 
@@ -68,7 +70,7 @@ export class PhenomenonController {
     @Body() body: CreateAiDraftTaskDto,
     @Req() request: any,
   ) {
-    const user = request.user;
+    const { user } = request;
     return this.gateway.scheduleAiDraft({
       ...body,
       phenomenonSlug: slug,
@@ -84,22 +86,11 @@ export class PhenomenonController {
     @Body() body: GetAiSuggestionsDto,
     @Req() request: any,
   ) {
-    const user = request.user;
+    const { user } = request;
     return this.gateway.scheduleAiSuggestions({
       ...body,
       phenomenonSlug: slug,
       userId: user.id,
     });
-  }
-
-  private slugify(text: string): string {
-    return text
-      .toString()
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-')
-      .replace(/^-+/, '')
-      .replace(/-+$/, '');
   }
 }

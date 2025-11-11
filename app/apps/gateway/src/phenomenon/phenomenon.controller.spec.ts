@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PhenomenonController } from './phenomenon.controller';
 import { PhenomenonService } from './phenomenon.service';
 import { PhenomenonStorageService } from '@synop/domains';
-import { GatewayService } from './gateway.service';
-import { AuthService } from './auth/auth.service';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { GatewayService } from '../gateway/gateway.service';
+import { AuthService } from '../auth/auth.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 describe('PhenomenonController', () => {
   let controller: PhenomenonController;
