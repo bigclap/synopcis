@@ -1,5 +1,5 @@
-import PhenomenonView from '@/components/organisms/PhenomenonView';
-import PhenomenonCard from '@/components/organisms/PhenomenonCard';
+import PhenomenonView from '@/components/phenomenon/organisms/PhenomenonView';
+import PhenomenonCard from '@/components/phenomenon/organisms/PhenomenonCard';
 import {
   RenderablePhenomenon,
   Manifest,
@@ -8,7 +8,7 @@ import {
 import path from 'path';
 import { promises as fs } from 'fs';
 import { Container, Title } from '@mantine/core';
-import Layout from '@/components/Layout';
+import Layout from '@/components/shared/organisms/Layout';
 
 // Helper to construct the correct path to the public directory
 const getPublicDirPath = () => {

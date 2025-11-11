@@ -1,9 +1,9 @@
 import React from 'react';
-import AchievementsGallery from '@/components/organisms/AchievementsGallery';
-import Karma from '@/components/atoms/Karma';
-import ActivityFeed from '@/components/organisms/ActivityFeed';
-import { achievements } from '@/services/mock-data/achievements';
-import { karma, activityFeed } from '@/services/mock-data/profile';
+import AchievementsGallery from '@/components/profile/organisms/AchievementsGallery';
+import Karma from '@/components/profile/atoms/Karma';
+import ActivityFeed from '@/components/profile/organisms/ActivityFeed';
+import { achievements } from '@/components/profile/services/achievementsService';
+import { karma, activityFeed } from '@/components/profile/services/profileService';
 import { GetStaticProps } from 'next';
 
 interface Achievement {

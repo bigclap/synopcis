@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import Layout from '@/components/Layout';
+import Layout from '@/components/shared/organisms/Layout';
 import {
   createPhenomenon,
   generateAIDraft,
-} from '@/services/phenomena/phenomenaApiService';
+} from '@/components/phenomenon/services/phenomenaApiService';
 import { Phenomenon } from '@/types/phenomenon';
 import {
   TextInput,
